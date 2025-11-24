@@ -457,56 +457,71 @@ export default function Dashboard() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
+          
+          {/* MODIFIED: flex-col untuk mobile, md:flex-row untuk desktop */}
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            
+            {/* Bagian Kiri: Logo, Judul, Status */}
             <div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-400 rounded-lg flex items-center justify-center">
+              {/* MODIFIED: flex-wrap agar aman di layar sangat kecil */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-400 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Palette className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+                
+                {/* MODIFIED: text-xl di mobile, text-2xl di desktop */}
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+                  Admin Dashboard
+                </h1>
+
                 <div className="flex items-center gap-2">
                   {connectionStatus === "connected" && (
-                    <div className="flex items-center gap-1 text-green-600 text-sm">
-                      <Wifi size={16} />
-                      <span>Connected</span>
+                    <div className="flex items-center gap-1 text-green-600 text-sm bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                      <Wifi size={14} />
+                      <span className="text-xs sm:text-sm">Connected</span>
                     </div>
                   )}
                   {connectionStatus === "mock" && (
-                    <div className="flex items-center gap-1 text-yellow-600 text-sm">
-                      <WifiOff size={16} />
-                      <span>Demo Mode</span>
+                    <div className="flex items-center gap-1 text-yellow-600 text-sm bg-yellow-50 px-2 py-0.5 rounded-full border border-yellow-100">
+                      <WifiOff size={14} />
+                      <span className="text-xs sm:text-sm">Demo Mode</span>
                     </div>
                   )}
                   {connectionStatus === "error" && (
-                    <div className="flex items-center gap-1 text-red-600 text-sm">
-                      <AlertCircle size={16} />
-                      <span>Error</span>
+                    <div className="flex items-center gap-1 text-red-600 text-sm bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
+                      <AlertCircle size={14} />
+                      <span className="text-xs sm:text-sm">Error</span>
                     </div>
                   )}
                 </div>
               </div>
-              <p className="text-gray-600">
+              
+              <p className="text-gray-600 text-sm mt-1">
                 {connectionStatus === "mock"
                   ? "Demo mode - Full editing capabilities available"
                   : "Full admin control - Edit everything"}
               </p>
             </div>
-            <div className="flex items-center gap-4">
+
+            {/* Bagian Kanan: Tombol Action */}
+            {/* MODIFIED: w-full di mobile agar tombol bisa di-stretch atau diatur ulang */}
+            <div className="flex items-center gap-3 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-gray-100 md:border-none">
               <button
                 onClick={() => {
                   fetchOrders()
                   fetchAnalytics()
                 }}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-orange-500 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2 text-gray-600 hover:text-orange-500 hover:bg-gray-50 rounded-md transition-colors flex-1 md:flex-none border md:border-transparent border-gray-200"
                 title="Refresh Data"
               >
                 <RefreshCw size={20} />
                 <span>Refresh</span>
               </button>
+              
               <button
                 onClick={handleLogout}
                 disabled={loggingOut}
-                className="flex items-center gap-2 btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed flex-1 md:flex-none"
               >
                 <LogOut size={20} />
                 <span>{loggingOut ? "Logging out..." : "Logout"}</span>
@@ -515,12 +530,14 @@ export default function Dashboard() {
           </div>
 
           {error && (
-            <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
-              <AlertCircle size={20} />
+            <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start sm:items-center gap-2">
+              <AlertCircle size={20} className="mt-0.5 sm:mt-0 flex-shrink-0" />
               <div>
-                <p className="font-medium">Connection Error</p>
-                <p className="text-sm">{error}</p>
-                <p className="text-sm mt-1">Dashboard is running in demo mode with full editing capabilities.</p>
+                <p className="font-medium text-sm sm:text-base">Connection Error</p>
+                <p className="text-xs sm:text-sm">{error}</p>
+                <p className="text-xs sm:text-sm mt-1">
+                  Dashboard is running in demo mode with full editing capabilities.
+                </p>
               </div>
             </div>
           )}
@@ -529,33 +546,42 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Tabs */}
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              {[
-                { id: "overview", label: "Overview", icon: BarChart3 },
-                { id: "orders", label: "Orders Management", icon: FileText },
-                { id: "analytics", label: "Analytics", icon: TrendingUp },
-                { id: "website", label: "Website Settings", icon: Globe },
-                { id: "pricing", label: "Pricing Management", icon: CreditCard },
-                { id: "settings", label: "System Settings", icon: Settings },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
-                      ? "border-orange-500 text-orange-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  <tab.icon size={20} />
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  {/* Navigation Tabs */}
+  <div className="mb-8">
+    <div className="border-b border-gray-200">
+      <nav 
+        className="-mb-px flex gap-6 sm:gap-8 overflow-x-auto whitespace-nowrap pb-1 scrollbar-hide" 
+        aria-label="Tabs"
+      >
+        {[
+          { id: "overview", label: "Overview", icon: BarChart3 },
+          { id: "orders", label: "Orders Management", icon: FileText },
+          { id: "analytics", label: "Analytics", icon: TrendingUp },
+          { id: "website", label: "Website Settings", icon: Globe },
+          { id: "pricing", label: "Pricing Management", icon: CreditCard },
+          { id: "settings", label: "System Settings", icon: Settings },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`group inline-flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+              activeTab === tab.id
+                ? "border-orange-500 text-orange-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            {/* flex-shrink-0 mencegah icon gepeng */}
+            <tab.icon size={20} className={`flex-shrink-0 ${
+              activeTab === tab.id ? "text-orange-500" : "text-gray-400 group-hover:text-gray-500"
+            }`} />
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  </div>
+</div>
 
         {/* Overview Tab */}
         {activeTab === "overview" && (
