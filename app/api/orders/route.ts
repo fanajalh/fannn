@@ -212,20 +212,20 @@ export async function POST(request: NextRequest) {
 
                 const whatsappMessage = `🎉 *PESANAN BARU MASUK!*
 
-📋 *Order Details:*
-• Order ID: ${orderNumber}
-• Nama: ${orderData.contact.name}
-• Email: ${orderData.contact.email}
-• Phone: ${orderData.contact.phone}
-• Service: ${orderData.service}
-• Package: ${orderData.package}
-• Total: Rp ${totalPrice.toLocaleString("id-ID")}
-• Deadline: ${orderData.details.deadline}
+                📋 *Order Details:*
+                • Order ID: ${orderNumber}
+                • Nama: ${orderData.contact.name}
+                • Email: ${orderData.contact.email}
+                • Phone: ${orderData.contact.phone}
+                • Service: ${orderData.service}
+                • Package: ${orderData.package}
+                • Total: Rp ${totalPrice.toLocaleString("id-ID")}
+                • Deadline: ${orderData.details.deadline}
 
-📝 *Deskripsi:*
-${orderData.details.description}
+                📝 *Deskripsi:*
+                ${orderData.details.description}
 
-⏰ Segera follow up customer!`
+                ⏰ Segera follow up customer!`
 
                 const whatsappResponse = await fetch(
                     `https://api.ultramsg.com/${process.env.ULTRAMSG_INSTANCE_ID}/messages/chat`,

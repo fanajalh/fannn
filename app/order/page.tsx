@@ -3,14 +3,87 @@
 import type React from "react"
 
 import { useState } from "react"
-import { ArrowLeft, Upload, X, MessageCircle } from "lucide-react"
+// Import ikon Check yang dibutuhkan
+import { ArrowLeft, Upload, X, MessageCircle, Loader, Check } from "lucide-react" 
 import Link from "next/link"
 import Image from "next/image"
 
 
+// --- KOMPONEN MODAL SUKSES BARU ---
+interface SuccessModalProps {
+    isOpen: boolean;
+    orderId: string;
+    onClose: (confirmWhatsapp: boolean) => void;
+    totalPrice: string;
+}
+
+const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, orderId, onClose, totalPrice }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-all duration-300 scale-100">
+                <div className="flex flex-col items-center">
+                    {/* Ikon Centang Hijau */}
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                        <Check size={32} className="text-green-600" />
+                    </div>
+                    
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Pesanan Terkirim!</h2>
+                    <p className="text-gray-600 text-center mb-6">
+                        Pesanan Anda **Order ID: {orderId}** berhasil dikirim.
+                    </p>
+
+                    {/* Ringkasan Cepat di Modal */}
+                    <div className="w-full p-4 bg-gray-50 rounded-xl mb-6">
+                        <div className="flex justify-between text-sm font-medium text-gray-700">
+                            <span>Total Pesanan:</span>
+                            <span className="text-lg font-bold gradient-text">{totalPrice}</span>
+                        </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Langkah Selanjutnya</h3>
+
+                    <button
+                        onClick={() => onClose(true)}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 transition-colors duration-300 mb-3"
+                    >
+                        <MessageCircle size={20} />
+                        <span>Lanjut ke WhatsApp Konfirmasi</span>
+                    </button>
+
+                    <button
+                        onClick={() => onClose(false)}
+                        className="w-full px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-100 transition-colors duration-300"
+                    >
+                        Tutup dan Tunggu Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+// ------------------------------------
+
 
 export default function OrderPage() {
     const [step, setStep] = useState(1)
+    
+    // === STATES UNTUK SUBMISSION & UI ===
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    // isSuccess tetap digunakan untuk styling tombol submit
+    const [isSuccess, setIsSuccess] = useState(false); 
+    
+    // STATE BARU untuk mengontrol modal
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // STATE BARU untuk menyimpan detail setelah sukses
+    const [lastOrderDetails, setLastOrderDetails] = useState({
+        orderNumber: "",
+        totalPrice: 0,
+    });
+    // ===================================
+    
     const [orderData, setOrderData] = useState({
         service: "",
         package: "",
@@ -37,35 +110,35 @@ export default function OrderPage() {
       name: "Poster Event",
       description: "Poster untuk konser, seminar, workshop",
       price: 15000,
-      image: "/feed arfan (20).png", // Diperbarui
+      image: "/feed arfan (20).png",
     },
     {
       id: "poster-edukasi",
       name: "Poster Edukasi",
       description: "Poster informatif untuk kampanye dan edukasi",
       price: 20000,
-      image: "/feed arfan (20).png", // Diperbarui
+      image: "/feed arfan (20).png",
     },
     {
       id: "social-media",
       name: "Social Media Design",
       description: "Template untuk Instagram, Facebook",
       price: 25000,
-      image: "/feed arfan (20).png", // Mengganti item "social media" dengan yang harganya 25k
+      image: "/feed arfan (20).png",
     },
     {
       id: "print-flyer",
       name: "Flyer & Leaflet",
       description: "Desain flyer dan leaflet untuk promosi",
       price: 15000,
-      image: "/feed arfan (20).png", // Diperbarui
+      image: "/feed arfan (20).png",
     },
     {
       id: "lainnya",
       name: "Layanan Lainnya",
       description: "Desain, spanduk, brosur, dan kebutuhan cetak lainnya harga menyesuaikan",
       price: 10000,
-      image: "/feed arfan (20).png", // Diperbarui
+      image: "/feed arfan (20).png",
     },
   ]
 
@@ -89,14 +162,6 @@ export default function OrderPage() {
             features: ["Unlimited Revisi", "Semua Format + Vector", "Rush Order", "Dedicated Support"],
         },
     ]
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || [])
-        setOrderData((prev) => ({
-            ...prev,
-            files: [...prev.files, ...files],
-        }))
-    }
 
     const removeFile = (index: number) => {
         setOrderData((prev) => ({
@@ -133,12 +198,71 @@ export default function OrderPage() {
     const prevStep = () => {
         if (step > 1) setStep(step - 1)
     }
+    
+    // Fungsi baru untuk menutup modal dan memproses WhatsApp
+    const closeModal = (confirmWhatsApp: boolean) => {
+        setIsModalOpen(false); // Tutup modal
+
+        const currentTotal = formatPrice(lastOrderDetails.totalPrice);
+        const orderNumber = lastOrderDetails.orderNumber;
+
+        // Teks WhatsApp menggunakan data dari state terakhir
+        const whatsappMessage = `Halo! Saya baru saja submit pesanan dengan Order ID: ${orderNumber}
+
+            Detail pesanan:
+            - Layanan: ${orderData.service.replace("-", " ")}
+            - Paket: ${orderData.package}
+            - Total: ${currentTotal}
+
+            Mohon konfirmasi dan info lebih lanjut. Terima kasih!`
+
+        const whatsappUrl = `https://wa.me/6285728150223?text=${encodeURIComponent(whatsappMessage)}`
+        
+        // Buka WhatsApp hanya jika pengguna memilih untuk konfirmasi via WhatsApp
+        if (confirmWhatsApp) {
+            window.open(whatsappUrl, "_blank")
+        }
+
+        // Reset form setelah semua selesai (jika perlu)
+        setOrderData({
+            service: "",
+            package: "",
+            details: {
+                title: "",
+                description: "",
+                dimensions: "",
+                colors: "",
+                deadline: "",
+                additionalInfo: "",
+            },
+            files: [],
+            contact: {
+                name: "",
+                email: "",
+                phone: "",
+                company: "",
+            },
+        })
+        setStep(1)
+        // Setelah reset, hapus detail pesanan terakhir
+        setLastOrderDetails({ orderNumber: "", totalPrice: 0 }); 
+    }
+
 
     const handleSubmit = async () => {
+        // 1. Mencegah double-click jika sudah dalam proses submit ATAU SUKSES
+        if (isSubmitting || isSuccess) {
+            return; 
+        }
+
         if (!orderData.contact.name || !orderData.contact.email || !orderData.contact.phone) {
             alert("Harap lengkapi Nama, Email, dan No. WhatsApp.")
             return
         }
+
+        // 2. Set status menjadi sedang submit
+        setIsSubmitting(true);
+        setIsSuccess(false); // Pastikan status sukses direset
 
         try {
             const { files, ...dataToSend } = orderData;
@@ -154,59 +278,50 @@ export default function OrderPage() {
             const result = await response.json()
 
             if (result.success) {
-                const whatsappMessage = `Halo! Saya baru saja submit pesanan dengan Order ID: ${result.order.order_number}
+                // === LOGIKA SUKSES BARU ===
+                setIsSuccess(true);
+                
+                // Simpan detail pesanan yang berhasil (Order ID & Total)
+                const currentTotal = calculateTotal();
+                setLastOrderDetails({
+                    orderNumber: result.order.order_number,
+                    totalPrice: currentTotal,
+                });
+                
+                // Tampilkan modal sukses
+                setIsModalOpen(true);
+                
+                // Atur timer untuk menghilangkan status sukses di tombol (opsional, bisa dihilangkan)
+                setTimeout(() => {
+                    setIsSuccess(false);
+                }, 3000);
 
-Detail pesanan:
-- Layanan: ${orderData.service.replace("-", " ")}
-- Paket: ${orderData.package}
-- Total: ${formatPrice(calculateTotal())}
-
-Mohon konfirmasi dan info lebih lanjut. Terima kasih!`
-
-                const whatsappUrl = `https://wa.me/6285728150223?text=${encodeURIComponent(whatsappMessage)}`
-
-                const confirmWhatsApp = window.confirm(
-                    `${result.message}\n\nApakah Anda ingin langsung chat WhatsApp untuk konfirmasi pesanan?`,
-                )
-
-                if (confirmWhatsApp) {
-                    window.open(whatsappUrl, "_blank")
-                }
-
-                // Reset form
-                setOrderData({
-                    service: "",
-                    package: "",
-                    details: {
-                        title: "",
-                        description: "",
-                        dimensions: "",
-                        colors: "",
-                        deadline: "",
-                        additionalInfo: "",
-                    },
-                    files: [],
-                    contact: {
-                        name: "",
-                        email: "",
-                        phone: "",
-                        company: "",
-                    },
-                })
-                setStep(1)
+                // Catatan: Logika window.confirm/window.open WhatsApp dipindahkan ke fungsi closeModal()
+                // ==========================
+                
             } else {
                 alert(`Error: ${result.message}`)
             }
         } catch (error) {
             console.error("Submit error:", error)
             alert("Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.")
+        } finally {
+            // 3. Pastikan status loading kembali ke false setelah selesai
+            setIsSubmitting(false);
         }
     }
-
     
 
     return (
         <div className="min-h-screen bg-gray-50 pt-20">
+            {/* RENDER MODAL SUKSES */}
+            <SuccessModal
+                isOpen={isModalOpen}
+                orderId={lastOrderDetails.orderNumber}
+                totalPrice={formatPrice(lastOrderDetails.totalPrice)}
+                onClose={closeModal}
+            />
+            
             {/* Menambahkan mb-16 untuk memberikan ruang di bagian bawah agar summary mobile terlihat */}
             <div className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${orderData.service && orderData.package ? 'mb-20 sm:mb-12' : ''}`}>
                 
@@ -624,11 +739,30 @@ Mohon konfirmasi dan info lebih lanjut. Terima kasih!`
                         ) : (
                             <button
                                 onClick={handleSubmit}
-                                disabled={!orderData.contact.name || !orderData.contact.email || !orderData.contact.phone}
-                                className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                // Kondisi disabled diperbarui: dinonaktifkan jika data tidak lengkap, loading, ATAU MODAL TERBUKA
+                                disabled={!orderData.contact.name || !orderData.contact.email || !orderData.contact.phone || isSubmitting || isModalOpen}
+                                className={`btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed ${isSuccess ? 'bg-green-600 hover:bg-green-700' : ''}`}
                             >
-                                <MessageCircle size={20} />
-                                <span>Kirim Pesanan</span>
+                                {/* Logika tampilan tombol diperbarui */}
+                                {isSuccess ? (
+                                    // Status SUKSES (ikon centang)
+                                    <>
+                                        <Check size={20} />
+                                        <span>Terkirim!</span>
+                                    </>
+                                ) : isSubmitting ? (
+                                    // Status LOADING (ikon berputar)
+                                    <>
+                                        <Loader size={20} className="animate-spin" />
+                                        <span>Mengirim...</span> 
+                                    </>
+                                ) : (
+                                    // Status NORMAL
+                                    <>
+                                        <MessageCircle size={20} />
+                                        <span>Kirim Pesanan</span>
+                                    </>
+                                )}
                             </button>
                         )}
                     </div>
