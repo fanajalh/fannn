@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Menu, X, Palette } from "lucide-react"
+import { Menu, X, Palette, MessageSquare } from "lucide-react"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -17,10 +17,11 @@ export default function Navbar() {
   }, [])
 
   const navLinks = [
-    { href: "#services", label: "Layanan" },
-    { href: "#portfolio", label: "Portfolio" },
-    { href: "#pricing", label: "Harga" },
-    { href: "#contact", label: "Kontak" },
+    { href: "/#services", label: "Layanan" },
+    { href: "/#portfolio", label: "Portfolio" },
+    { href: "/#pricing", label: "Harga" },
+    { href: "/saran", label: "Saran" }, // Menambahkan tautan Saran
+    { href: "#/contact", label: "Kontak" },
   ]
 
   return (

@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+// Import ikon yang diperlukan (asumsi ini diimpor di komponen utama Anda)
+import { Send, AlertTriangle, Loader2, User, BookOpen, Tag } from 'lucide-react'; 
+
 import {
   Users,
   FileText,
@@ -120,14 +123,41 @@ export default function Dashboard() {
   const [editingSettings, setEditingSettings] = useState(false)
   const [sortField, setSortField] = useState<string>("created_at")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+  // SUGGESTIONS: state
+const [suggestions, setSuggestions] = useState<any[]>([])
+const [loadingSuggestions, setLoadingSuggestions] = useState<boolean>(false)
+const [selectedSuggestion, setSelectedSuggestion] = useState<any | null>(null)
+const [suggestionResponse, setSuggestionResponse] = useState<string>("")
+
+
   const router = useRouter()
 
   useEffect(() => {
     checkAuth()
     fetchOrders()
     fetchAnalytics()
+    fetchSuggestions() // <-- tambahkan ini
     loadWebsiteSettings()
   }, [])
+
+  const fetchSuggestions = async () => {
+  try {
+    setLoadingSuggestions(true)
+    const res = await fetch("/api/suggestions")
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`)
+    }
+    const json = await res.json()
+    // asumsi API mengembalikan { data: [...] }
+    setSuggestions(json.data || [])
+  } catch (err) {
+    console.error("Error fetching suggestions:", err)
+    setSuggestions([])
+  } finally {
+    setLoadingSuggestions(false)
+  }
+}
+
 
   const checkAuth = async () => {
     try {
@@ -418,6 +448,11 @@ export default function Dashboard() {
       return aValue < bValue ? 1 : -1
     }
   })
+const ORANGE_PRIMARY_GRADIENT = "bg-gradient-to-r from-[#FF7A00] to-[#FF8F2C]";
+const ORANGE_ACCENT = "text-[#FF7A00]";
+const ORANGE_BORDER_LIGHT = "border-[#FFE1C6]";
+const ORANGE_BG_SOFT = "bg-[#FFF6EF]";
+const ORANGE_SHADOW_LIGHT = "shadow-orange-100/50";
 
   const filteredOrders = sortedOrders.filter((order) => {
     const matchesStatus = statusFilter === "all" || order.status === statusFilter
@@ -557,6 +592,7 @@ export default function Dashboard() {
         {[
           { id: "overview", label: "Overview", icon: BarChart3 },
           { id: "orders", label: "Orders Management", icon: FileText },
+          { id: "suggestions", label: "Suggestions", icon: MessageSquare },
           { id: "analytics", label: "Analytics", icon: TrendingUp },
           { id: "website", label: "Website Settings", icon: Globe },
           { id: "pricing", label: "Pricing Management", icon: CreditCard },
@@ -582,6 +618,267 @@ export default function Dashboard() {
     </div>
   </div>
 </div>
+
+
+{/* Suggestions Tab */}
+{activeTab === "suggestions" && (
+  // Menggunakan background yang lembut
+  <div className="space-y-8 p-6 bg-gradient-to-br from-white to-[#FFF6EF] min-h-screen">
+    
+    {/* Header & Controls */}
+    <div className="flex justify-between items-center pb-4 border-b border-[#FFE1C6]">
+      <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+        <MessageSquare className="w-6 h-6 text-[#FF7A00]" />
+        User Suggestions ({suggestions.length})
+      </h3>
+
+      <button
+        onClick={fetchSuggestions}
+        className={`flex items-center gap-2 px-4 py-2 ${ORANGE_BG_SOFT} ${ORANGE_ACCENT} ${ORANGE_BORDER_LIGHT} border-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed`}
+        disabled={loadingSuggestions}
+      >
+        {loadingSuggestions ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <RefreshCw className="w-4 h-4" />
+        )}
+        Refresh Data
+      </button>
+    </div>
+
+    {/* --- */}
+
+    {/* TABLE CONTAINER (Glassmorphism inspired) */}
+    <div className={`bg-white/70 backdrop-blur-md rounded-3xl shadow-xl ${ORANGE_SHADOW_LIGHT} ${ORANGE_BORDER_LIGHT} border overflow-hidden`}>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px]">
+          <thead className="bg-[#FF7A00]/15 border-b border-[#FFE1C6]">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-bold text-[#FF7A00] uppercase tracking-wider">ID</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-[#FF7A00] uppercase tracking-wider">Pengirim</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-[#FF7A00] uppercase tracking-wider">Kategori</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-[#FF7A00] uppercase tracking-wider">Isi Saran</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-[#FF7A00] uppercase tracking-wider">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-[#FF7A00] uppercase tracking-wider">Aksi</th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-[#FFE1C6]">
+            {loadingSuggestions ? (
+              <tr>
+                <td colSpan={6} className="p-10 text-center text-gray-500">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#FF7A00] mx-auto mb-3" />
+                  Memuat saran pengguna...
+                </td>
+              </tr>
+            ) : suggestions.length === 0 ? (
+                <tr>
+                    <td colSpan={6} className="p-10 text-center text-gray-500">
+                        <AlertTriangle className="w-6 h-6 text-orange-400 mx-auto mb-3" />
+                        Belum ada saran yang masuk.
+                    </td>
+                </tr>
+            ) : (
+              suggestions.map((s: any) => (
+                <tr 
+                  key={s.id} 
+                  // Peningkatan responsivitas: Hover yang lebih jelas
+                  className="odd:bg-white/50 even:bg-[#FFF6EF]/50 hover:bg-[#FF7A00]/20 transition-colors duration-150 cursor-default"
+                >
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{s.id}</td>
+                  
+                  {/* Nama & Email (Combined) */}
+                  <td className="px-4 py-3 text-sm">
+                    <div className="font-semibold text-gray-800">{s.nama || "Anonim"}</div>
+                    <div className="text-xs text-gray-500 truncate max-w-[150px]">{s.user_email || "-"}</div>
+                  </td>
+                  
+                  {/* Kategori */}
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    <span className="bg-[#FFE1C6] text-[#FF7A00] text-xs font-medium px-2 py-0.5 rounded-full">
+                        {s.category}
+                    </span>
+                  </td>
+
+                  {/* Saran (Truncated) */}
+                  <td className="px-4 py-3 text-sm text-gray-600 truncate max-w-[300px]">
+                    {s.saran}
+                  </td>
+                  
+                  {/* Status Badge */}
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 text-xs font-bold leading-none rounded-full ${
+                        s.status === "reviewed"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                        {s.status === "reviewed" ? "Reviewed" : "Pending"}
+                    </span>
+                  </td>
+                  
+                  {/* Aksi */}
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2">
+
+                      {/* REVIEW Button (Responsiveness improved) */}
+                      <button
+                        onClick={() => {
+                          setSelectedSuggestion(s)
+                          setSuggestionResponse(s.response || "")
+                        }}
+                        className={`p-2 ${ORANGE_PRIMARY_GRADIENT} text-white rounded-lg shadow-md hover:shadow-lg transition duration-150 transform hover:scale-[1.05] active:scale-[0.95]`}
+                        title="Review dan Beri Respon"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+
+                      {/* DELETE Button (Responsiveness improved) */}
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Apakah Anda yakin ingin menghapus saran dari ID ${s.id}?`)) return
+                          
+                          try {
+                            const res = await fetch(
+                              `/api/admin/suggestions/${s.id}`,
+                              { method: "DELETE" }
+                            )
+
+                            if (!res.ok) {
+                              alert("Gagal menghapus saran.")
+                              return
+                            }
+                            fetchSuggestions() 
+                          } catch (error) {
+                             alert("Terjadi kesalahan jaringan saat menghapus.")
+                          }
+                        }}
+                        className="p-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition duration-150 transform hover:scale-[1.05] active:scale-[0.95]"
+                        title="Hapus Saran"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {/* --- */}
+
+    {/* MODAL REVIEW (Glassmorphism & Orange Palette) */}
+    {selectedSuggestion && (
+      // Glass Backdrop
+      <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex justify-center items-center p-4">
+        {/* Modal Container */}
+        <div className={`bg-white/80 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-2xl transform transition-all ${ORANGE_BORDER_LIGHT} border-2`}>
+          
+          <div className="flex justify-between items-center border-b border-[#FFE1C6] pb-3 mb-4">
+            <h4 className="text-xl font-bold text-[#FF7A00] flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                Review & Response
+            </h4>
+            <button 
+                onClick={() => setSelectedSuggestion(null)}
+                className="p-1 rounded-full text-gray-500 hover:bg-[#FFE1C6] transition"
+            >
+                <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* User Info */}
+          <div className="grid grid-cols-2 gap-4 mb-4 text-sm p-4 bg-[#FFF6EF] rounded-xl border border-[#FFE1C6]">
+            <p className="flex items-center gap-2">
+                <User className="w-4 h-4 text-[#FF7A00]" />
+                <span className="font-semibold text-gray-700">Nama:</span> {selectedSuggestion.nama || "Anonim"}
+            </p>
+            <p className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-[#FF7A00]" />
+                <span className="font-semibold text-gray-700">Email:</span> {selectedSuggestion.user_email || "-"}
+            </p>
+            <p className="col-span-2 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-[#FF7A00]" />
+                <span className="font-semibold text-gray-700">Kategori:</span> {selectedSuggestion.category}
+            </p>
+          </div>
+
+          {/* Original Suggestion */}
+          <div className="p-4 bg-white border-2 border-[#FFE1C6] rounded-xl mb-6 shadow-inner">
+            <p className="text-sm font-semibold text-[#FF7A00] mb-2">Saran Pengguna:</p>
+            <div className="text-gray-700 italic text-base max-h-36 overflow-y-auto p-1">
+                "{selectedSuggestion.saran}"
+            </div>
+          </div>
+
+          {/* Admin Response Textarea */}
+          <label htmlFor="admin-response" className="block text-sm font-bold text-gray-700 mb-2">
+            Respon Balasan Admin:
+          </label>
+          <textarea
+            id="admin-response"
+            value={suggestionResponse}
+            onChange={(e) => setSuggestionResponse(e.target.value)}
+            rows={5}
+            placeholder="Tulis balasan resmi Anda di sini..."
+            className="w-full border-2 border-[#FFE1C6] focus:border-[#FF7A00] focus:ring-[#FF7A00]/50 p-3 rounded-xl text-gray-800 transition duration-200 bg-white/70"
+          />
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={() => setSelectedSuggestion(null)}
+              className={`px-4 py-2 border-2 ${ORANGE_BORDER_LIGHT} text-gray-700 rounded-xl hover:bg-[#FFE1C6] transition duration-200 transform active:scale-[0.98]`}
+            >
+              Batal
+            </button>
+
+            <button
+              onClick={async () => {
+                try {
+                    const res = await fetch(
+                        `/api/admin/suggestions/${selectedSuggestion.id}`,
+                        {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                response: suggestionResponse,
+                                status: "reviewed",
+                            }),
+                        }
+                    )
+                    
+                    if (!res.ok) {
+                        alert("Gagal menyimpan respon.")
+                        return
+                    }
+
+                    setSelectedSuggestion(null)
+                    fetchSuggestions()
+                } catch (error) {
+                    alert("Terjadi kesalahan jaringan saat menyimpan.")
+                }
+              }}
+              // Peningkatan responsivitas: Efek scaling pada tombol utama
+              className={`flex items-center gap-2 ${ORANGE_PRIMARY_GRADIENT} text-white px-4 py-2 rounded-xl font-semibold shadow-lg shadow-[#FF7A00]/30 hover:shadow-xl hover:scale-[1.01] transition duration-200 active:scale-[0.97]`}
+            >
+              <Send className="w-4 h-4" />
+              Kirim Respon & Tandai Reviewed
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+  </div>
+)}
 
         {/* Overview Tab */}
         {activeTab === "overview" && (

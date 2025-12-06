@@ -508,21 +508,29 @@ export default function OrderPage() {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Deadline *</label>
-                                    <input
-                                        type="date"
-                                        value={orderData.details.deadline}
-                                        onChange={(e) =>
-                                            setOrderData((prev) => ({
-                                                ...prev,
-                                                details: { ...prev.details, deadline: e.target.value },
-                                            }))
-                                        }
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        min={new Date().toISOString().split("T")[0]}
-                                    />
-                                </div>
+                               <div>
+    {/* Label untuk input */}
+    <label className="block text-sm font-semibold text-gray-700 mb-2">Deadline *</label>
+    
+    <input
+        type="date" 
+        value={orderData.details.deadline} 
+        onChange={(e) =>
+            setOrderData((prev) => ({
+                ...prev,
+                details: { ...prev.details, deadline: e.target.value },
+            }))
+        }
+        
+        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        min={
+            // 1. Dapatkan tanggal hari ini, lalu tambahkan 3 hari
+            new Date(new Date().setDate(new Date().getDate() + 3)) 
+            // 2. Konversi ke format string YYYY-MM-DD yang dibutuhkan oleh atribut 'min'
+            .toISOString().split("T")[0]
+        }
+    />
+</div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Informasi Tambahan</label>
