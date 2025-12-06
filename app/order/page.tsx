@@ -525,7 +525,7 @@ export default function OrderPage() {
         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
         min={
             // 1. Dapatkan tanggal hari ini, lalu tambahkan 3 hari
-            new Date(new Date().setDate(new Date().getDate() + 3)) 
+            new Date(new Date().setDate(new Date().getDate() + 2)) 
             // 2. Konversi ke format string YYYY-MM-DD yang dibutuhkan oleh atribut 'min'
             .toISOString().split("T")[0]
         }
