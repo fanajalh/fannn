@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Transition } from "@headlessui/react"; // Membutuhkan instalasi @headlessui/react
-import { Send, User, Mail, Tag, FileText, CheckCircle, X, Sparkles, Loader2 } from "lucide-react";
+import { Transition } from "@headlessui/react";
+import { Send, User, Mail, Tag, FileText, CheckCircle, X, Sparkles, Loader2, MessageSquare } from "lucide-react";
 
-// Definisi kategori dan ikon emoji
 const categories = [
   { value: "Desain UI/UX", icon: "🎨" },
   { value: "Fitur Baru", icon: "✨" },
@@ -15,7 +14,6 @@ const categories = [
 ];
 
 export default function SuggestionForm() {
-  // LOGIC: Menggunakan useState terpisah seperti di kode awal
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [category, setCategory] = useState("");
@@ -23,16 +21,12 @@ export default function SuggestionForm() {
   
   const [loading, setLoading] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const [error, setError] = useState<string | null>(null); // State tambahan untuk menampilkan error
-  
-  // DESIGN: State untuk efek Focus pada input
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
 
-    // LOGIC: Validasi Category wajib diisi (menggunakan alert, seperti di kode awal)
     if (!category.trim()) {
       alert("Category wajib diisi!");
       return;
@@ -44,34 +38,27 @@ export default function SuggestionForm() {
       const res = await fetch("/api/suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // LOGIC: Mengirim state yang terpisah
         body: JSON.stringify({ name, email, category, message }),
       });
 
       const result = await res.json();
 
       if (!res.ok) {
-        // LOGIC: Menggunakan alert untuk error
         alert(result.error || "Gagal mengirim saran.");
         return;
       }
 
-      // LOGIC: Jika sukses, tampilkan pop-up
       setShowSuccessPopup(true);
-
-      // Reset form
       setName("");
       setEmail("");
       setCategory("");
       setMessage("");
 
-      // LOGIC: Sembunyikan pop-up setelah 3 detik
       setTimeout(() => {
         setShowSuccessPopup(false);
       }, 3000);
 
     } catch (error) {
-      // LOGIC: Menangani error dan menampilkan alert
       alert("Terjadi kesalahan saat mengirim saran. Silakan coba lagi.");
       console.error("Submission error:", error);
     } finally {
@@ -81,165 +68,137 @@ export default function SuggestionForm() {
 
   return (
     <>
-      <section id="kirim-saran" className="py-16 md:py-24 relative overflow-hidden bg-white">
-        {/* Dekorasi Background Oranye (Blur/Glow) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FFF6EF]/50 to-white pointer-events-none" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#FF7A00]/5 rounded-full blur-3xl opacity-60" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#FFA84C]/5 rounded-full blur-3xl opacity-60" />
+      <section id="kirim-saran" className="py-20 relative overflow-hidden bg-[#FAFAFA] selection:bg-orange-100 selection:text-orange-900">
+        
+        {/* Dekorasi Background Oranye (Glow Orbs) */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-3xl mx-auto px-6 relative z-10">
           
-          {/* Section Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-[#FFE1C6] mb-4">
-              <Sparkles className="w-4 h-4 text-[#FF7A00]" />
-              <span className="text-sm font-medium text-[#6B7280]">Form Saran</span>
+          {/* --- HEADER --- */}
+          <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-100 rounded-full mb-6 shadow-sm">
+              <Sparkles size={14} className="text-orange-500" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Suara Pengguna</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#2D2D2D] mb-4">
-              Sampaikan{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF7A00] to-[#FF8F2C]">
-                Saran Anda
-              </span>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-[1.1] mb-4">
+              Punya Ide Brilian? <br />
+              <span className="text-orange-500">Ayo Sampaikan.</span>
             </h2>
-            <p className="text-[#6B7280] max-w-xl mx-auto">
-              Isi form di bawah ini untuk memberikan masukan. Saran Anda sangat berarti bagi kami.
+            <p className="text-lg text-gray-500 font-medium max-w-xl mx-auto leading-relaxed">
+              JokiPoster terus berkembang berkat masukan komunitas. Kritik, saran, atau request fitur baru—kami siap mendengarkan.
             </p>
           </div>
 
-          {/* FORM CONTAINER */}
-          <div className="bg-white rounded-3xl shadow-2xl shadow-[#FF7A00]/10 p-6 md:p-10 border border-[#FFE1C6]/50 relative">
-            
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#FFF6EF] to-transparent rounded-tr-3xl pointer-events-none" />
-
-            <form onSubmit={handleSubmit} className="space-y-6 relative">
+          {/* --- FORM CONTAINER --- */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 p-8 md:p-12 shadow-2xl shadow-orange-900/5 relative">
+            <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
               
-              {/* Note: Error display using state is ignored here to stick to the original logic's use of 'alert' */}
-
-              {/* Nama Input */}
-              <div className="space-y-2">
-                <label htmlFor="name" className="flex items-center gap-2 text-sm font-semibold text-[#2D2D2D]">
-                  <div
-                    className={`p-1.5 rounded-lg transition-colors duration-200 ${focusedField === "name" ? "bg-[#FF7A00]" : "bg-[#FFE1C6]"}`}
-                  >
-                    <User className={`w-3.5 h-3.5 ${focusedField === "name" ? "text-white" : "text-[#FF7A00]"}`} />
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Input Nama */}
+                <div className="space-y-1.5">
+                  <label htmlFor="name" className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                    Nama <span className="font-medium text-gray-300">(Opsional)</span>
+                  </label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Anonim"
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium outline-none placeholder:text-gray-400"
+                    />
                   </div>
-                  Nama <span className="text-[#9CA3AF] font-normal">(Opsional)</span>
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onFocus={() => setFocusedField("name")}
-                  onBlur={() => setFocusedField(null)}
-                  placeholder="Masukkan nama Anda atau kosongkan untuk anonim"
-                  className="w-full px-5 py-4 bg-[#FFF6EF] border-2 border-[#FFE1C6] rounded-2xl focus:outline-none focus:ring-0 focus:border-[#FF7A00] focus:bg-white transition-all duration-300 placeholder:text-[#9CA3AF] text-[#2D2D2D]"
-                />
+                </div>
+
+                {/* Input Email */}
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                    Email <span className="font-medium text-gray-300">(Opsional)</span>
+                  </label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="email@contoh.com"
+                      className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium outline-none placeholder:text-gray-400"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Email Input */}
-              <div className="space-y-2">
-                <label htmlFor="email" className="flex items-center gap-2 text-sm font-semibold text-[#2D2D2D]">
-                  <div
-                    className={`p-1.5 rounded-lg transition-colors duration-200 ${focusedField === "email" ? "bg-[#FF7A00]" : "bg-[#FFE1C6]"}`}
-                  >
-                    <Mail className={`w-3.5 h-3.5 ${focusedField === "email" ? "text-white" : "text-[#FF7A00]"}`} />
-                  </div>
-                  Email <span className="text-[#9CA3AF] font-normal">(Opsional)</span>
+              {/* Select Kategori */}
+              <div className="space-y-1.5">
+                <label htmlFor="category" className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                  Kategori <span className="text-orange-500">*</span>
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setFocusedField("email")}
-                  onBlur={() => setFocusedField(null)}
-                  placeholder="email@contoh.com"
-                  className="w-full px-5 py-4 bg-[#FFF6EF] border-2 border-[#FFE1C6] rounded-2xl focus:outline-none focus:ring-0 focus:border-[#FF7A00] focus:bg-white transition-all duration-300 placeholder:text-[#9CA3AF] text-[#2D2D2D]"
-                />
-              </div>
-
-              {/* Kategori Select */}
-              <div className="space-y-2">
-                <label htmlFor="category" className="flex items-center gap-2 text-sm font-semibold text-[#2D2D2D]">
-                  <div
-                    className={`p-1.5 rounded-lg transition-colors duration-200 ${focusedField === "category" ? "bg-[#FF7A00]" : "bg-[#FFE1C6]"}`}
-                  >
-                    <Tag className={`w-3.5 h-3.5 ${focusedField === "category" ? "text-white" : "text-[#FF7A00]"}`} />
-                  </div>
-                  Kategori Saran <span className="text-[#FF7A00]">*</span>
-                </label>
-                <div className="relative">
+                <div className="relative group">
+                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={18} />
                   <select
                     id="category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    onFocus={() => setFocusedField("category")}
-                    onBlur={() => setFocusedField(null)}
                     required
-                    className={`w-full px-5 py-4 bg-[#FFF6EF] border-2 border-[#FFE1C6] rounded-2xl focus:outline-none focus:ring-0 focus:border-[#FF7A00] focus:bg-white transition-all duration-300 appearance-none cursor-pointer pr-12 ${
-                      !category ? "text-[#9CA3AF]" : "text-[#2D2D2D]"
+                    className={`w-full pl-11 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium outline-none appearance-none cursor-pointer ${
+                      !category ? "text-gray-400" : "text-gray-900"
                     }`}
                   >
-                    <option value="" disabled className="text-[#9CA3AF]">
-                      Pilih kategori saran
-                    </option>
+                    <option value="" disabled>Pilih topik saran Anda...</option>
                     {categories.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
+                      <option key={cat.value} value={cat.value} className="text-gray-900">
                         {cat.icon} {cat.value}
                       </option>
                     ))}
                   </select>
-                  {/* Custom Arrow Down */}
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
-                    <svg className="w-5 h-5 text-[#FF7A00]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* Custom Chevron Arrow */}
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                 </div>
               </div>
 
-              {/* Saran Textarea */}
-              <div className="space-y-2">
-                <label htmlFor="message" className="flex items-center gap-2 text-sm font-semibold text-[#2D2D2D]">
-                  <div
-                    className={`p-1.5 rounded-lg transition-colors duration-200 ${focusedField === "message" ? "bg-[#FF7A00]" : "bg-[#FFE1C6]"}`}
-                  >
-                    <FileText className={`w-3.5 h-3.5 ${focusedField === "message" ? "text-white" : "text-[#FF7A00]"}`} />
-                  </div>
-                  Isi Saran <span className="text-[#FF7A00]">*</span>
+              {/* Textarea Pesan */}
+              <div className="space-y-1.5">
+                <label htmlFor="message" className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                  Pesan & Detail <span className="text-orange-500">*</span>
                 </label>
-                <textarea
-                  id="message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onFocus={() => setFocusedField("message")}
-                  onBlur={() => setFocusedField(null)}
-                  required
-                  rows={5}
-                  placeholder="Tuliskan saran, kritik, atau masukan Anda di sini dengan detail..."
-                  className="w-full px-5 py-4 bg-[#FFF6EF] border-2 border-[#FFE1C6] rounded-2xl focus:outline-none focus:ring-0 focus:border-[#FF7A00] focus:bg-white transition-all duration-300 placeholder:text-[#9CA3AF] text-[#2D2D2D] resize-none"
-                />
-                <p className="text-xs text-[#9CA3AF] flex items-center gap-1">
-                  <span className="text-[#FF7A00]">*</span> Field wajib diisi
-                </p>
+                <div className="relative group">
+                  <FileText className="absolute left-4 top-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <textarea
+                    id="message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    required
+                    rows={5}
+                    placeholder="Ceritakan secara detail ide, fitur, atau masalah yang Anda temukan..."
+                    className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium outline-none placeholder:text-gray-400 resize-none custom-scrollbar"
+                  />
+                </div>
               </div>
 
-              {/* SUBMIT BUTTON */}
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#FF7A00] to-[#FF8F2C] text-white font-bold text-lg rounded-2xl shadow-lg shadow-[#FF7A00]/30 hover:shadow-xl hover:shadow-[#FF7A00]/40 hover:from-[#FF8F2C] hover:to-[#FFA84C] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg"
+                className="w-full mt-2 flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl transition-all shadow-xl shadow-orange-500/25 active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="animate-spin h-5 w-5 text-white" />
-                    Mengirim Saran...
+                    <Loader2 className="animate-spin" size={20} />
+                    <span>Mengirim...</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-5 h-5" />
-                    Kirim Masukan Anda
+                    <span>Kirim Saran</span>
+                    <Send size={18} className="ml-1" />
                   </>
                 )}
               </button>
@@ -248,7 +207,7 @@ export default function SuggestionForm() {
         </div>
       </section>
 
-      {/* SUCCESS POPUP MODAL (Menggunakan Headless UI Transition seperti di kode awal) */}
+      {/* --- SUCCESS POPUP MODAL --- */}
       <Transition
         show={showSuccessPopup}
         enter="transition-opacity ease-out duration-300"
@@ -259,67 +218,52 @@ export default function SuggestionForm() {
         leaveTo="opacity-0"
       >
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300"
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
             onClick={() => setShowSuccessPopup(false)}
           />
 
-          {/* Modal Content */}
-          <div className="relative bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center animate-in zoom-in-95 fade-in duration-300">
-            {/* Close button */}
+          <div className="relative bg-white rounded-[2.5rem] shadow-2xl p-8 max-w-sm w-full text-center transform transition-all border border-gray-100">
             <button
               onClick={() => setShowSuccessPopup(false)}
-              className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-5 right-5 p-2 rounded-full hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X size={20} />
             </button>
 
-            {/* Success icon with pulsing animation */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-6 mt-4">
               <div className="relative">
-                {/* Ping effect */}
-                <div className="absolute inset-0 bg-[#FF7A00]/20 rounded-full animate-ping" />
-                <div className="relative w-20 h-20 bg-gradient-to-br from-[#FF7A00] to-[#FFA84C] rounded-full flex items-center justify-center shadow-lg shadow-[#FF7A00]/30">
+                <div className="absolute inset-0 bg-emerald-500/20 rounded-full animate-ping" />
+                <div className="relative w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
                   <CheckCircle className="w-10 h-10 text-white" />
                 </div>
               </div>
             </div>
 
-            <h3 className="text-2xl font-bold text-[#2D2D2D] mb-2">Terima Kasih!</h3>
-            <p className="text-[#6B7280] mb-6">Saran Anda telah berhasil terkirim.</p>
+            <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Terima Kasih!</h3>
+            <p className="text-sm font-medium text-gray-500 mb-8 leading-relaxed">
+              Masukan kamu sudah kami terima dan akan segera masuk dapur evaluasi tim JokiPoster.
+            </p>
             
-            {/* Progress bar (animasi mundur) - Tetap menggunakan logika 3 detik */}
-            <div className="w-full h-1 bg-[#FFE1C6] rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#FF7A00] to-[#FFA84C] rounded-full animate-[shrink_3s_linear_forwards]" />
+            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full animate-[shrink_3s_linear_forwards]" />
             </div>
-            <p className="text-xs text-gray-400 mt-2">Pop-up akan hilang dalam 3 detik</p>
+            <p className="text-[10px] font-bold text-gray-400 mt-3 uppercase tracking-widest">
+              Menutup otomatis
+            </p>
           </div>
         </div>
       </Transition>
 
-      {/* Style untuk Keyframe Animasi CSS */}
-      <style jsx>{`
-        /* Keyframe untuk animasi progress bar mundur */
+      <style jsx global>{`
         @keyframes shrink {
           from { width: 100%; }
           to { width: 0%; }
         }
-        /* Keyframe untuk dekorasi background */
-        @keyframes pulse-slow {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
-        }
-        @keyframes pulse-slow-reverse {
-            0%, 100% { opacity: 0.6; transform: scale(1.05); }
-            50% { opacity: 0.8; transform: scale(1); }
-        }
-        .animate-pulse-slow {
-            animation: pulse-slow 8s infinite ease-in-out;
-        }
-        .animate-pulse-slow-reverse {
-            animation: pulse-slow-reverse 9s infinite ease-in-out;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
       `}</style>
     </>
   );

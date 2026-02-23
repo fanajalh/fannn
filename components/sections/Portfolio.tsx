@@ -1,181 +1,186 @@
-"use client" // WAJIB: Mengaktifkan Client Component untuk menggunakan useState dan interaksi
+"use client"
 
-import { useState } from "react" // Import hook useState
+import { useState } from "react"
 import Image from "next/image"
-import { ExternalLink, X } from "lucide-react" // Menambahkan X untuk tombol tutup modal
+import { X, Search, Instagram, Filter } from "lucide-react"
 
 export default function Portfolio() {
-  // 1. State untuk mengontrol modal
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState("")
   const [selectedTitle, setSelectedTitle] = useState("")
+  const [activeCategory, setActiveCategory] = useState("Semua")
 
-  // Data Portofolio (Gunakan path gambar asli di folder /public)
   const portfolioItems = [
-    {
-      title: "Poster Edukasi Kesehatan",
-      category: "Edukasi",
-      // Ganti placeholder dengan path gambar asli Anda!
-      image: "/TBC Fiks.png", 
-      description: "Poster kampanye kesehatan dengan infografis menarik",
-    },
-    {
-      title: "Poster Promosi Cafe",
-      category: "Promosi",
-      image: "/promosi.png", 
-      description: "Poster promosi menu cafe dengan desain modern",
-    },
-    {
-      title: "Poster Ucapan",
-      category: "Poster",
-      image: "/flyer.png", 
-      description: "Logo minimalis untuk brand fashion lokal",
-    },
-    {
-      title: "Social Media Template",
-      category: "Social Media",
-      image: "/ucapan.png", 
-      description: "Template Instagram untuk ucapan",
-    },
-    {
-      title: "Banner Event Seminar",
-      category: "Print",
-      image: "/Poster Seminar.png", 
-      description: "Banner besar untuk seminar bisnis dan teknologi",
-    },
-    {
-      title: "Poster Edukasi",
-      category: "Edukasi",
-      image: "/infografis.jpg", 
-      description: "Poster kampanye dengan infografis menarik",
-    },
+    { title: "Poster Edukasi Kesehatan", category: "Edukasi", image: "/TBC Fiks.png", description: "Infografis kampanye kesehatan TBC." },
+    { title: "Poster Promosi Cafe", category: "Promosi", image: "/promosi.png", description: "Desain estetik untuk menu baru cafe." },
+    { title: "Poster Ucapan", category: "Poster", image: "/flyer.png", description: "Flyer ucapan hari besar nasional." },
+    { title: "Social Media Template", category: "Social Media", image: "/ucapan.png", description: "Template Instagram branding." },
+    { title: "Banner Event Seminar", category: "Print", image: "/Poster Seminar.png", description: "Poster seminar teknologi & bisnis." },
+    { title: "Poster Edukasi", category: "Edukasi", image: "/infografis.jpg", description: "Visualisasi data edukatif." },
   ]
-  
-  // Fungsi untuk membuka modal
+
+  const categories = ["Semua", ...new Set(portfolioItems.map((item) => item.category))]
+
+  const filteredItems = activeCategory === "Semua" 
+    ? portfolioItems 
+    : portfolioItems.filter(item => item.category === activeCategory)
+
   const openModal = (imageSrc: string, title: string) => {
     setSelectedImage(imageSrc)
     setSelectedTitle(title)
     setIsModalOpen(true)
+    document.body.style.overflow = 'hidden' // Mencegah scroll saat modal buka
   }
 
-  // Fungsi untuk menutup modal
   const closeModal = () => {
     setIsModalOpen(false)
-    setSelectedImage("")
-    setSelectedTitle("")
+    document.body.style.overflow = 'auto'
   }
 
   return (
-    <>
-      <section id="portfolio" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">
-              Portfolio <span className="gradient-text">Kami</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Lihat hasil karya terbaik kami yang telah membantu berbagai klien mencapai tujuan mereka
-            </p>
-            <div className="w-20 h-1 bg-gradient-to-r from-orange-500 to-orange-400 mx-auto mt-6 rounded-full"></div>
-          </div>
+    <section id="portfolio" className="relative py-24 bg-white overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-gray-50 to-transparent" />
 
-          {/* Portfolio Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {portfolioItems.map((item, index) => (
-              <div
-                key={index}
-                // Tambahkan onClick handler untuk membuka modal
-                onClick={() => openModal(item.image, item.title)}
-                className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden cursor-pointer"
-              >
-                <div className="relative overflow-hidden">
-                  <Image
-                    // NOTE: Hapus query string jika menggunakan gambar asli
-                    src={item.image}
-                    alt={item.title}
-                    width={300}
-                    height={400}
-                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    {/* Mengganti ExternalLink dengan indikator zoom */}
-                    <span className="text-white text-lg font-semibold border-2 border-white px-4 py-2 rounded-full">
-                      Lihat Detail
-                    </span>
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 relative z-10">
+        
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-full text-sm font-bold mb-4 border border-orange-100">
+            <Filter className="w-4 h-4" />
+            <span>Karya Terbaik</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+            Portfolio <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-orange-400">JokiPoster</span>
+          </h2>
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
+            Eksplorasi hasil karya desain kami. Dari edukasi hingga promosi bisnis, kami hadirkan visual yang menjual.
+          </p>
+        </div>
+
+        {/* Filter Buttons */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${
+                activeCategory === cat 
+                ? "bg-gray-900 text-white shadow-lg shadow-gray-200" 
+                : "bg-gray-100 text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Portfolio Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+          {filteredItems.map((item, index) => (
+            <div
+              key={index}
+              onClick={() => openModal(item.image, item.title)}
+              className="group relative bg-white rounded-[2rem] overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100"
+            >
+              {/* Image Container - Aspect Poster (3:4) */}
+              <div className="relative aspect-[3/4] overflow-hidden">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                
+                {/* Glassmorphism Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-500 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
+                  <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500 bg-white/20 p-4 rounded-full mb-4 border border-white/30">
+                    <Search className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      {item.category}
-                    </span>
-                  </div>
+                  <p className="text-white font-bold text-lg mb-1">{item.title}</p>
+                  <p className="text-orange-200 text-sm">{item.category}</p>
                 </div>
 
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{item.title}</h3>
-                  <p className="text-gray-600">{item.description}</p>
+                {/* Category Tag (Static) */}
+                <div className="absolute top-5 left-5 z-20">
+                  <span className="bg-white/90 backdrop-blur-md text-gray-900 px-4 py-1.5 rounded-full text-xs font-black shadow-sm uppercase tracking-wider">
+                    {item.category}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* CTA */}
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-6">Ingin melihat lebih banyak karya kami?</p>
+              {/* Card Footer */}
+              <div className="p-6 bg-white">
+                <h3 className="text-lg font-extrabold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA Instagram */}
+        <div className="mt-20 p-10 bg-gradient-to-br from-gray-900 to-gray-800 rounded-[3rem] text-center relative overflow-hidden shadow-2xl">
+          {/* Accent light */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-500 rounded-full blur-[100px] opacity-20" />
+          
+          <div className="relative z-10">
+            <Instagram className="w-12 h-12 text-orange-500 mx-auto mb-6 animate-bounce" style={{ animationDuration: '3s' }} />
+            <h3 className="text-2xl md:text-3xl font-black text-white mb-4">
+              Ingin Lihat Update Terbaru?
+            </h3>
+            <p className="text-gray-400 mb-8 max-w-xl mx-auto">
+              Ikuti perjalanan kreatif kami dan dapatkan inspirasi desain poster setiap harinya di Instagram resmi kami.
+            </p>
             <a
-              href="https://www.instagram.com/fan_ajalah?igsh=MXUyNGw4cWhjc25wdw=="
+              href="https://www.instagram.com/fan_ajalah"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center bg-orange-600 text-white hover:bg-orange-700 font-bold py-3 px-8 rounded-full shadow-md transition duration-300"
+              className="inline-flex items-center justify-center gap-3 bg-white text-gray-900 hover:bg-orange-500 hover:text-white font-black py-4 px-10 rounded-2xl shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
-              Lihat di Instagram
+              Follow @fan_ajalah
             </a>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ========================================================== */}
-      {/* KOMPONEN MODAL/POP-UP */}
-      {/* ========================================================== */}
+      {/* Lightbox Modal */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 p-4 transition-opacity duration-300"
-          onClick={closeModal} // Tutup modal jika mengklik area gelap di luar
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-gray-950/95 backdrop-blur-md p-4 transition-all duration-500"
+          onClick={closeModal}
         >
           <div 
-            className="relative bg-white rounded-lg shadow-2xl max-w-4xl w-full p-4 md:p-6 animate-zoom-in"
-            onClick={(e) => e.stopPropagation()} // Cegah penutupan saat mengklik di dalam modal
+            className="relative w-full max-w-3xl animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Tombol Tutup */}
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
-              aria-label="Tutup Modal"
+              className="absolute -top-14 right-0 md:-right-14 text-white hover:text-orange-500 transition-colors p-2"
             >
-              <X className="w-8 h-8" />
+              <X className="w-10 h-10" />
             </button>
 
-            {/* Konten Gambar */}
-            <div className="relative w-full h-auto">
+            <div className="bg-white rounded-[2.5rem] p-3 md:p-5 shadow-2xl">
+              <div className="relative aspect-[3/4] w-full max-h-[75vh]">
                 <Image
-                    src={selectedImage}
-                    alt={selectedTitle}
-                    width={800} // Atur lebar yang lebih besar untuk modal
-                    height={800} // Atur tinggi yang lebih besar
-                    className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
-                    // Menggunakan style fill jika aspect ratio tidak terprediksi, 
-                    // tetapi width/height lebih baik jika aspect ratio bisa diprediksi.
+                  src={selectedImage}
+                  alt={selectedTitle}
+                  fill
+                  className="object-contain rounded-[2rem]"
                 />
+              </div>
+              <div className="py-6 px-4 text-center">
+                <h3 className="text-2xl font-black text-gray-900">{selectedTitle}</h3>
+                <div className="w-12 h-1 bg-orange-500 mx-auto mt-3 rounded-full" />
+              </div>
             </div>
-            
-            {/* Keterangan */}
-            <h3 className="text-2xl font-bold text-gray-800 mt-4 text-center">
-                {selectedTitle}
-            </h3>
           </div>
         </div>
       )}
-    </>
+    </section>
   )
 }

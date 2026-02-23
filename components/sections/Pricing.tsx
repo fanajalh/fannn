@@ -1,67 +1,72 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
-import { Check, X, Star, ArrowRight } from "lucide-react"
+import { CheckCircle2, X, Star, ArrowRight, Sparkles, Zap, Crown, HelpCircle } from "lucide-react"
 
 export default function Pricing() {
-  const [isYearly, setIsYearly] = useState(false)
-
   const plans = [
     {
       name: "Basic",
-      description: "Cocok untuk kebutuhan personal",
+      description: "Cocok untuk kebutuhan personal atau tugas.",
       monthlyPrice: 15000,
-      icon: "🎨",
+      icon: Zap,
       features: [
-        "1 desain poster",
-        "2 revisi gratis",
-        "Format JPG/PNG/PDF",
-        "Resolusi standar",
-        "Pengerjaan 2-3 hari",
-        "Support via chat",
+        "1 Pilihan Desain Poster",
+        "2x Revisi Gratis",
+        "Format File (JPG / PNG)",
+        "Resolusi Standar",
+        "Pengerjaan 2-3 Hari",
+        "Support via Chat",
       ],
-      notIncluded: ["Link template ", "Desain kompleks", "Rush order", "Konsultasi mendalam"],
+      notIncluded: [
+        "Source File (PSD/AI)", 
+        "Desain Super Kompleks", 
+        "Pengerjaan Kilat (1 Hari)", 
+        "Konsultasi Konsep"
+      ],
       popular: false,
       buttonText: "Pilih Basic",
+      buttonStyle: "bg-orange-50 text-orange-600 hover:bg-orange-100",
     },
     {
       name: "Professional",
-      description: "Pilihan terbaik",
+      description: "Paling pas untuk promosi event & branding.",
       monthlyPrice: 20000,
-      icon: "🚀",
+      icon: Sparkles,
       features: [
-        "1 desain poster premium",
-        "5 revisi gratis",
-        "Semua format (JPG, PNG, PDF)",
-        "Resolusi tinggi",
-        "Source file included",
-        "Pengerjaan 2-3 hari",
-        "Konsultasi design",
-        "Support prioritas",
+        "1 Desain Poster Premium",
+        "5x Revisi Gratis",
+        "Semua Format (JPG, PNG, PDF)",
+        "Resolusi Tinggi (High-Res)",
+        "Source File Included",
+        "Pengerjaan 2-3 Hari",
+        "Konsultasi Arah Desain",
+        "Support Prioritas",
       ],
-      notIncluded: ["Rush order (same day)"],
+      notIncluded: ["Pengerjaan Kilat (Same Day)"],
       popular: true,
       buttonText: "Pilih Professional",
+      buttonStyle: "bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/25",
     },
     {
       name: "Enterprise",
-      description: "Solusi lengkap",
+      description: "Solusi lengkap untuk skala komersial.",
       monthlyPrice: 25000,
-      icon: "👑",
+      icon: Crown,
       features: [
-        "1 desain poster premium+",
-        "Revisi unlimited",
-        "Semua format",
-        "Resolusi ultra tinggi",
-        "link template",
-        "Rush order available",
-        "Dedicated designer",
-        "24/7 priority support",
+        "1 Desain Poster Eksklusif",
+        "Revisi Sepuasnya (Unlimited)",
+        "Semua Format + Link Template",
+        "Resolusi Ultra HD 4K",
+        "Bisa Pengerjaan Kilat",
+        "Dedicated Designer",
+        "24/7 Priority Support",
+        "Lisensi Komersial Bebas",
       ],
       notIncluded: [],
       popular: false,
       buttonText: "Hubungi Kami",
+      buttonStyle: "bg-gray-900 text-white hover:bg-gray-800",
     },
   ]
 
@@ -75,121 +80,148 @@ export default function Pricing() {
   }
 
   return (
-    <section id="pricing" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            Paket <span className="gradient-text">Harga</span>
+    <section id="pricing" className="relative py-24 lg:py-32 bg-white overflow-hidden selection:bg-orange-100 selection:text-orange-900">
+      
+      {/* Subtle Background Elements */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#FFF5EC] rounded-full blur-[100px] opacity-60 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 relative z-10">
+        
+        {/* ================= HEADER SECTION ================= */}
+        <div className="text-center mb-16 md:mb-20 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-full">
+            <Sparkles className="w-4 h-4 text-orange-500" />
+            <span className="text-xs font-bold text-orange-600 uppercase tracking-widest">
+              Investasi Visual
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight">
+            Pilih Paket <span className="text-orange-500">Harga</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Pilih paket yang sesuai dengan kebutuhan dan budget Anda
+          <p className="text-lg md:text-xl text-gray-500 font-medium max-w-2xl mx-auto">
+            Harga transparan tanpa biaya tersembunyi. Tingkatkan kualitas visual bisnis Anda dengan budget yang masuk akal.
           </p>
-          <div className="w-20 h-1 bg-gradient-to-r from-orange-500 to-orange-400 mx-auto mt-6 rounded-full"></div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {/* ================= PRICING CARDS ================= */}
+        <div className="grid lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 ${
-                plan.popular ? "border-2 border-orange-500 scale-105" : "border border-gray-200"
+              className={`relative flex flex-col bg-white rounded-[2.5rem] transition-all duration-500 hover:-translate-y-2 p-8 md:p-10 ${
+                plan.popular 
+                  ? "border-2 border-orange-500 shadow-2xl shadow-orange-900/10 lg:scale-105 z-20" 
+                  : "border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200 z-10"
               }`}
             >
+              {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-orange-500 to-orange-400 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
-                    <Star size={16} className="fill-current" />
-                    Paling Populer
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <div className="bg-gradient-to-r from-orange-600 to-orange-400 text-white px-5 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-1.5 shadow-md">
+                    <Star size={14} className="fill-current" />
+                    Best Seller
                   </div>
                 </div>
               )}
 
-              <div className="p-8">
-                {/* Header */}
-                <div className="text-center mb-8">
-                  <div className="text-4xl mb-4">{plan.icon}</div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">{plan.name}</h3>
-                  <p className="text-gray-600">{plan.description}</p>
+              {/* Card Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-black text-gray-900">{plan.name}</h3>
+                  <p className="text-sm font-medium text-gray-500 mt-2 line-clamp-2 pr-4">{plan.description}</p>
                 </div>
-
-                {/* Price */}
-                <div className="text-center mb-8">
-                  <div className="text-4xl font-bold gradient-text mb-2">{formatPrice(plan.monthlyPrice)}</div>
-                  <div className="text-gray-500">per poster</div>
+                <div className={`p-3 rounded-2xl flex-shrink-0 ${plan.popular ? 'bg-orange-100 text-orange-600' : 'bg-gray-50 text-gray-400'}`}>
+                  <plan.icon size={24} />
                 </div>
-
-                {/* Features */}
-                <div className="space-y-4 mb-8">
-                  <h4 className="font-semibold text-gray-800">Yang Anda Dapatkan:</h4>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <Check size={20} className="text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {plan.notIncluded.length > 0 && (
-                    <>
-                      <h4 className="font-semibold text-gray-800 mt-6">Tidak Termasuk:</h4>
-                      <ul className="space-y-3">
-                        {plan.notIncluded.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-3">
-                            <X size={20} className="text-gray-400 flex-shrink-0 mt-0.5" />
-                            <span className="text-gray-500">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </div>
-
-                {/* Button */}
-                <Link
-                  href="/order"
-                  className={`w-full justify-center ${plan.popular ? "btn btn-primary" : "btn btn-secondary"}`}
-                >
-                  <span>{plan.buttonText}</span>
-                  <ArrowRight size={20} />
-                </Link>
               </div>
+
+              {/* Price */}
+              <div className="mb-8 flex items-baseline gap-1">
+                <span className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
+                  {formatPrice(plan.monthlyPrice).replace("Rp", "")}
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-gray-400">IDR</span>
+                  <span className="text-xs font-medium text-gray-500">/ project</span>
+                </div>
+              </div>
+
+              <div className="h-px w-full bg-gray-100 mb-8" />
+
+              {/* Features List */}
+              <div className="flex-1 space-y-6 mb-10">
+                <div className="space-y-3.5">
+                  <p className="text-xs font-black text-gray-900 uppercase tracking-wider mb-4">Yang Anda Dapatkan:</p>
+                  {plan.features.map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <CheckCircle2 size={20} className="text-orange-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm font-medium text-gray-700">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {plan.notIncluded.length > 0 && (
+                  <div className="space-y-3.5 pt-4">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Tidak Termasuk:</p>
+                    {plan.notIncluded.map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-3 opacity-60">
+                        <X size={20} className="text-gray-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm font-medium text-gray-500">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* CTA Button */}
+              <Link
+                href="/order"
+                className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition-all duration-300 ${plan.buttonStyle}`}
+              >
+                {plan.buttonText}
+                <ArrowRight size={18} />
+              </Link>
             </div>
           ))}
         </div>
 
-        {/* FAQ */}
-        <div className="mt-20">
-          <h3 className="text-2xl font-bold text-center text-gray-800 mb-8">Pertanyaan yang Sering Diajukan</h3>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <h4 className="font-semibold text-gray-800 mb-2">Apakah ada biaya tersembunyi?</h4>
-              <p className="text-gray-600 text-sm">
-                Tidak ada biaya tersembunyi. Harga yang tertera sudah final dan transparan.
-              </p>
+        {/* ================= FAQ SECTION ================= */}
+        <div className="mt-32 max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center p-3 bg-gray-50 rounded-2xl mb-4">
+              <HelpCircle className="w-6 h-6 text-orange-500" />
             </div>
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <h4 className="font-semibold text-gray-800 mb-2">Bagaimana sistem pembayaran?</h4>
-              <p className="text-gray-600 text-sm">
-                Pembayaran 50% di awal, 50% setelah desain selesai. Tersedia berbagai metode pembayaran.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <h4 className="font-semibold text-gray-800 mb-2">Berapa lama pengerjaan?</h4>
-              <p className="text-gray-600 text-sm">
-                Tergantung paket yang dipilih. Basic 2-3 hari, Professional 2-3 hari, Enterprise fleksibel.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <h4 className="font-semibold text-gray-800 mb-2">Apakah bisa request revisi?</h4>
-              <p className="text-gray-600 text-sm">
-                Ya, setiap paket sudah termasuk revisi sesuai ketentuan. Revisi tambahan dikenakan biaya.
-              </p>
-            </div>
+            <h3 className="text-3xl font-black text-gray-900">Pertanyaan Populer</h3>
+            <p className="text-gray-500 mt-2 font-medium">Masih ragu? Temukan jawabannya di sini.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                q: "Apakah ada biaya tersembunyi?",
+                a: "Sama sekali tidak. Harga yang tertera pada paket sudah final dan transparan. Tidak ada biaya kejutan di akhir."
+              },
+              {
+                q: "Bagaimana sistem pembayarannya?",
+                a: "Untuk keamanan bersama, pembayaran dilakukan 50% di awal (DP) dan sisa 50% dilunasi setelah desain selesai 100%."
+              },
+              {
+                q: "Berapa lama proses pengerjaan?",
+                a: "Rata-rata 2-3 hari kerja. Namun, jika Anda memilih paket Enterprise atau menambah fitur Rush Order, bisa selesai kurang dari 24 jam."
+              },
+              {
+                q: "Bagaimana jika saya tidak suka hasilnya?",
+                a: "Tenang saja! Setiap paket sudah mencakup jatah revisi (bahkan unlimited untuk Enterprise) agar hasil akhirnya benar-benar sesuai keinginan Anda."
+              }
+            ].map((faq, i) => (
+              <div key={i} className="bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <h4 className="text-lg font-bold text-gray-900 mb-2">{faq.q}</h4>
+                <p className="text-sm text-gray-500 leading-relaxed font-medium">{faq.a}</p>
+              </div>
+            ))}
           </div>
         </div>
+
       </div>
     </section>
   )

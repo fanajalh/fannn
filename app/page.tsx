@@ -8,6 +8,7 @@ import Portfolio from "@/components/sections/Portfolio"
 import Contact from "@/components/sections/Contact"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
+import ChatCTA from "@/components/sections/chat"
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
       <Navbar />
       <Hero />
       <Services />
+      <ChatCTA />
       <Portfolio />
       <Pricing />
       <Lynk/> 

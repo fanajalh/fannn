@@ -12,9 +12,11 @@ import {
     BookOpen,
     Palette,
     Feather,
+    Sparkles,
+    Bug,
+    MessageSquareQuote
 } from "lucide-react"
 
-// Interface untuk data saran
 interface Suggestion {
     id: number
     nama: string | null
@@ -26,50 +28,40 @@ interface Suggestion {
 }
 
 /* ================= COLOR & ICON MAP ================= */
-// Pemetaan kategori ke warna dan ikon yang sesuai
-const categoryMap: Record<string, { color: string; icon: React.ReactNode }> = {
-    "Desain UI/UX": { color: "bg-orange-500", icon: <Palette className="w-3 h-3" /> },
-    "Fitur Baru": { color: "bg-amber-500", icon: <Inbox className="w-3 h-3" /> },
-    Dokumentasi: { color: "bg-indigo-500", icon: <BookOpen className="w-3 h-3" /> },
-    Lainnya: { color: "bg-purple-500", icon: <Feather className="w-3 h-3" /> },
+// Disesuaikan dengan pilihan di SuggestionForm agar sinkron
+const categoryMap: Record<string, { color: string; bg: string; icon: React.ReactNode }> = {
+    "Desain UI/UX": { color: "text-purple-600", bg: "bg-purple-50", icon: <Palette size={14} /> },
+    "Fitur Baru": { color: "text-blue-600", bg: "bg-blue-50", icon: <Sparkles size={14} /> },
+    "Perbaikan Bug": { color: "text-rose-600", bg: "bg-rose-50", icon: <Bug size={14} /> },
+    "Performa": { color: "text-amber-600", bg: "bg-amber-50", icon: <Zap size={14} /> },
+    "Dokumentasi": { color: "text-indigo-600", bg: "bg-indigo-50", icon: <BookOpen size={14} /> },
+    "Lainnya": { color: "text-orange-600", bg: "bg-orange-50", icon: <Feather size={14} /> },
 }
 
 /* ================= SAFE FETCHER ================= */
-// Fungsi fetcher untuk SWR, menangani respons JSON
 const fetcher = async (url: string) => {
     const res = await fetch(url)
     const json = await res.json()
-    // Pastikan data yang dikembalikan adalah array
     return Array.isArray(json?.data) ? json.data : []
 }
 
 export default function SuggestionList() {
     const [filter, setFilter] = useState("Semua")
 
-    // Ambil data menggunakan SWR
     const { data = [], isLoading, error } = useSWR<Suggestion[]>(
         "/api/suggestions",
         fetcher,
         {
-            refreshInterval: 5000, // Refresh data setiap 5 detik
+            refreshInterval: 5000,
             revalidateOnFocus: true,
         }
     )
 
     /* ================= FILTERING & DATA PREP ================= */
-    // Filter hanya saran yang sudah di-review/diverifikasi oleh admin
     const verified = data.filter((s) => s.status === "reviewed")
-
-    // Filter berdasarkan kategori yang dipilih
-    const filtered =
-        filter === "Semua"
-            ? verified
-            : verified.filter((s) => s.kategori === filter)
-
-    // Daftar kategori untuk tombol filter
+    const filtered = filter === "Semua" ? verified : verified.filter((s) => s.kategori === filter)
     const categories = ["Semua", ...Object.keys(categoryMap)]
 
-    // Fungsi untuk memformat tanggal
     const formatDate = (date: string) =>
         new Date(date).toLocaleDateString("id-ID", {
             day: "numeric",
@@ -78,116 +70,110 @@ export default function SuggestionList() {
         })
 
     return (
-        // Bagian utama dengan latar belakang abu-abu muda
-        // *** BAGIAN INI DITAMBAHKAN ID AGAR BISA DIAKSES DARI HEROSECTION ***
-        <section id="daftar-saran" className="py-16 bg-gray-50"> 
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="daftar-saran" className="py-24 relative overflow-hidden bg-[#FAFAFA] selection:bg-orange-100 selection:text-orange-900">
+            
+            {/* Background Decor */}
+            <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-                {/* HEADER */}
-                <div className="text-center mb-16">
-                    {/* Label status terverifikasi */}
-                    <div className="inline-flex items-center gap-2 bg-orange-100 px-4 py-2 rounded-full mb-4 shadow-sm">
-                        <Inbox className="w-5 h-5 text-orange-600" />
-                        <span className="text-sm font-medium text-orange-800">Saran Terverifikasi</span>
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+
+                {/* --- HEADER --- */}
+                <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-full mb-6 shadow-sm">
+                        <Inbox className="w-4 h-4 text-orange-500" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-600">Saran Terverifikasi</span>
                     </div>
-                    <h2 className="text-4xl font-extrabold text-gray-900">
-                        Dengar Suara Pengguna Kami 📣
+                    <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-[1.1] mb-4">
+                        Suara Pengguna <br className="hidden sm:block" />
+                        <span className="text-orange-500">JokiPoster.</span>
                     </h2>
-                    <p className="text-lg text-gray-600 mt-3 max-w-2xl mx-auto">
-                        Jelajahi masukan pengguna yang telah ditinjau dan balasan resmi dari tim kami.
+                    <p className="text-lg text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed">
+                        Jelajahi masukan yang telah ditinjau dan balasan resmi dari tim kami. Ide terbaik seringkali datang dari Anda.
                     </p>
                 </div>
-                
-                {/* --- */}
 
-                {/* FILTER BUTTONS */}
-                <div className="flex justify-center flex-wrap gap-3 mb-12">
+                {/* --- FILTER BUTTONS --- */}
+                <div className="flex justify-center flex-wrap gap-3 mb-16 animate-in fade-in duration-1000">
                     {categories.map((cat) => (
                         <button
                             key={cat}
                             onClick={() => setFilter(cat)}
-                            className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out shadow-md
-                                ${
-                                    filter === cat
-                                        ? "bg-orange-600 text-white shadow-orange-300/50 transform scale-105" // Active style: orange, shadow, slight scale
-                                        : "bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-600 border border-gray-200" // Inactive style: white, hover effect
-                                }`}
+                            className={`px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+                                filter === cat
+                                    ? "bg-gray-900 text-white shadow-xl shadow-gray-900/20 scale-105"
+                                    : "bg-white text-gray-500 hover:text-gray-900 hover:bg-gray-50 border border-gray-100 shadow-sm"
+                            }`}
                         >
                             {cat}
                         </button>
                     ))}
                 </div>
 
-                {/* --- */}
-
-                {/* LOADING STATE */}
+                {/* --- LOADING & ERROR STATES --- */}
                 {isLoading && (
-                    <div className="flex flex-col items-center py-20">
-                        <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
-                        <p className="text-gray-500 mt-4 text-lg">Memuat data saran...</p>
+                    <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                        <Loader2 className="w-10 h-10 animate-spin text-orange-500 mb-4" />
+                        <p className="text-xs font-black uppercase tracking-widest text-gray-400">Sinkronisasi Data...</p>
                     </div>
                 )}
 
-                {/* ERROR STATE */}
                 {error && (
-                    <p className="text-center text-red-500 text-lg py-10">
-                        Gagal memuat data. Silakan coba muat ulang.
-                    </p>
+                    <div className="max-w-md mx-auto bg-red-50 border border-red-100 p-6 rounded-2xl text-center">
+                        <p className="text-sm font-bold text-red-600">Gagal memuat data saran. Silakan muat ulang halaman.</p>
+                    </div>
                 )}
 
-                {/* DATA GRID */}
+                {/* --- DATA GRID --- */}
                 {!isLoading && filtered.length > 0 && (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filtered.map((s) => {
-                            // Ambil info warna dan ikon kategori
-                            const categoryInfo = categoryMap[s.kategori] || { color: "bg-gray-400", icon: <Feather className="w-3 h-3" /> }
+                            const categoryInfo = categoryMap[s.kategori] || { color: "text-gray-600", bg: "bg-gray-100", icon: <Feather size={14} /> }
                             
                             return (
                                 <div
                                     key={s.id}
-                                    // Card styling: white background, rounded, shadow, full height
-                                    className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100 flex flex-col h-full"
+                                    className="bg-white rounded-[2rem] p-8 shadow-sm hover:shadow-2xl hover:shadow-orange-900/5 border border-gray-100 flex flex-col h-full transition-all duration-500 hover:-translate-y-1 group"
                                 >
-                                    {/* CARD HEADER */}
-                                    <div className="flex justify-between items-start mb-4">
-                                        
-                                        {/* Category Tag (Icon + Text) */}
-                                        <span
-                                            className={`${categoryInfo.color} text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-md`}
-                                        >
+                                    {/* Card Header */}
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 font-black border border-gray-100">
+                                                <User size={18} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-gray-900">{s.nama || "Anonim"}</p>
+                                                <p className="text-[10px] font-bold text-gray-400 flex items-center gap-1 uppercase tracking-wider mt-0.5">
+                                                    <Calendar size={10} /> {formatDate(s.created_at)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className={`${categoryInfo.bg} ${categoryInfo.color} text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-1.5`}>
                                             {categoryInfo.icon}
                                             {s.kategori}
                                         </span>
+                                    </div>
 
-                                        {/* Meta Info (User & Date) */}
-                                        <div className="text-right flex flex-col items-end space-y-1">
-                                            <p className="text-sm font-medium text-gray-800 flex items-center gap-1">
-                                             <User className="w-4 h-4 text-gray-500" />
-                                             {s.nama || "Anonim"}
-                                            </p>
-                                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" />
-                                                {formatDate(s.created_at)}
+                                    {/* User Suggestion */}
+                                    <div className="flex-grow mb-6">
+                                        <div className="flex gap-2">
+                                            <MessageSquareQuote className="text-gray-200 flex-shrink-0 rotate-180" size={24} />
+                                            <p className="text-gray-700 font-medium leading-relaxed">
+                                                {s.saran}
                                             </p>
                                         </div>
-
                                     </div>
 
-                                    {/* SARAN CONTENT */}
-                                    <div className="flex-grow">
-                                            <p className="text-base text-gray-700 leading-relaxed mb-4 italic border-l-2 border-orange-200 pl-3">
-                                                "{s.saran}"
-                                            </p>
-                                    </div>
-
-                                    {/* ADMIN RESPONSE */}
+                                    {/* Admin Response (If any) */}
                                     {s.response && (
-                                        <div className="bg-green-50 p-4 rounded-xl border border-green-200 mt-4">
-                                            <div className="flex items-center gap-2 mb-2 text-green-700 text-sm font-bold">
-                                                <ShieldCheck className="w-5 h-5" />
-                                                Balasan Resmi Tim
+                                        <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/50 mt-auto relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full blur-xl" />
+                                            <div className="flex items-center gap-2 mb-3 relative z-10">
+                                                <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                                                    <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Respon Developer</span>
                                             </div>
-                                            <p className="text-sm text-gray-800 leading-snug">
+                                            <p className="text-sm text-gray-700 font-medium leading-relaxed relative z-10">
                                                 {s.response}
                                             </p>
                                         </div>
@@ -198,17 +184,16 @@ export default function SuggestionList() {
                     </div>
                 )}
 
-                {/* --- */}
-
-                {/* EMPTY STATE */}
+                {/* --- EMPTY STATE --- */}
                 {!isLoading && filtered.length === 0 && (
-                    <div className="text-center py-20 text-gray-500 bg-white rounded-xl border border-gray-200">
-                        <Inbox className="w-10 h-10 mx-auto mb-4 text-orange-400" />
-                        <p className="text-xl font-medium">
-                            Tidak ada saran terverifikasi untuk kategori **{filter}**.
-                        </p>
-                        <p className="mt-2 text-gray-400">
-                            Coba pilih kategori lain atau tunggu masukan baru ditinjau.
+                    <div className="max-w-2xl mx-auto text-center py-20 px-6 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
+                        <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-500">
+                            <Inbox size={32} />
+                        </div>
+                        <h3 className="text-2xl font-black text-gray-900 mb-2">Belum Ada Masukan</h3>
+                        <p className="text-gray-500 font-medium leading-relaxed">
+                            Tidak ada saran terverifikasi untuk kategori <span className="text-gray-900 font-bold">"{filter}"</span>. 
+                            Jadilah yang pertama memberikan ide brilian untuk kategori ini!
                         </p>
                     </div>
                 )}
