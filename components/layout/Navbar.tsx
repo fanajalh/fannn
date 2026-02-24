@@ -22,7 +22,8 @@ export default function Navbar() {
     { href: "/#pricing", label: "Harga" },
     { href: "/saran", label: "Saran" },
     { href: "/#contact", label: "Kontak" },
-    { href: "/photobooth", label: "PhotoBooth"}
+    { href: "/photobooth", label: "PhotoBooth"},
+    { href: "/sarangame", label: "SaranGame"},
   ]
 
   return (
