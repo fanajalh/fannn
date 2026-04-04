@@ -1,22 +1,14 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { 
   ArrowLeft, 
-  Download, 
   Trash2, 
   MoveUp, 
-  MoveDown, 
   Image as ImageIcon, 
   Sparkles, 
   Layers, 
-  Sticker as StickerIcon,
   Loader2,
   Camera
 } from "lucide-react"
@@ -25,7 +17,7 @@ import CanvasComposer from "@/components/canvas-composer"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 
-// --- Interfaces (Penting agar tidak error) ---
+// --- Interfaces ---
 interface Photo {
   id: string
   src: string
@@ -150,10 +142,6 @@ export default function StudioPage() {
     setPhotoAdjustments(newAdjustments)
   }
 
-  const handlePhotoAdjustment = (photoId: string, adjustment: PhotoAdjustment) => {
-    setPhotoAdjustments((prev) => ({ ...prev, [photoId]: adjustment }))
-  }
-
   const movePhoto = (fromIndex: number, toIndex: number) => {
     const newPhotos = [...photos]
     const [movedPhoto] = newPhotos.splice(fromIndex, 1)
@@ -170,141 +158,114 @@ export default function StudioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-yellow-50 p-0 font-sans text-slate-900">
-      {/* Header Baru - Lebih Clean */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/70 backdrop-blur-md px-6 h-16 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-4">
-          <Link href="/frames">
-            <Button variant="ghost" size="sm" className="gap-2 text-orange-600 hover:bg-orange-100/50">
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline font-medium">Ganti Frame</span>
-            </Button>
+    <div className="bg-[#f4f6f9] min-h-screen pb-28 font-sans select-none w-full relative overflow-x-hidden">
+      
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-5 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/frames" className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 flex-shrink-0 text-slate-500 hover:bg-slate-200 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
           </Link>
-          <Separator orientation="vertical" className="h-6 bg-orange-200" />
           <div className="flex items-center gap-2">
-            <div className="bg-orange-500 p-1.5 rounded-lg shadow-md shadow-orange-200">
+            <div className="bg-orange-500 p-1.5 rounded-lg shadow-sm shadow-orange-200/50">
               <Camera className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-xl tracking-tight">Photo<span className="text-orange-500">Studio</span></h1>
+            <h1 className="font-extrabold text-slate-800 text-[15px]">PhotoStudio</h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="bg-white/50 border-orange-200 text-orange-700 px-3 py-1 font-medium hidden md:block">
-            {transparentBoxes.length} Slot Terdeteksi
-          </Badge>
-          <Button 
-            onClick={downloadComposite} 
-            disabled={photos.length === 0} 
-            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-lg shadow-orange-200 transition-all active:scale-95"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download
-          </Button>
-        </div>
+        <button 
+          onClick={downloadComposite} 
+          disabled={photos.length === 0} 
+          className="bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20 active:scale-95 text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl flex-shrink-0 transition-all disabled:opacity-50 disabled:shadow-none"
+        >
+          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Simpan"}
+        </button>
       </header>
 
-      <main className="max-w-[1600px] mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-6xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
         
-        {/* Sidebar Kiri: Kontrol & Assets */}
-        <aside className="lg:col-span-4 space-y-6 order-2 lg:order-1">
-          <Card className="p-6 bg-white/80 border-none shadow-xl shadow-orange-100/50 rounded-2xl">
+        {/* CANVAS AREA */}
+        <section className="relative z-10 w-full lg:col-span-8 order-1">
+          {isProcessing ? (
+            <div className="w-full aspect-[3/4] flex flex-col items-center justify-center bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+              <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-3" />
+              <p className="text-xs font-bold text-slate-400">Menganalisa...</p>
+            </div>
+          ) : (
+            <div className="w-full bg-white p-3 md:p-5 rounded-[2rem] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 relative">
+              <div className="bg-slate-50 rounded-[1.5rem] p-3 flex items-center justify-center w-full min-h-[400px] md:min-h-[600px] border border-orange-50 overflow-hidden relative">
+                <CanvasComposer
+                  canvasRef={canvasRef}
+                  frameImage={frameImage}
+                  photos={photos}
+                  transparentBoxes={transparentBoxes}
+                  photoAdjustments={photoAdjustments}
+                  stickers={stickers}
+                  setStickers={setStickers}
+                />
+              </div>
+              <div className="mt-4 flex flex-wrap justify-center gap-4 md:gap-6 text-[9px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest pb-1">
+                 <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-orange-400" /> Geser Foto</span>
+                 <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-pink-400" /> Cubit Zoom</span>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* TOOLS COLUMN */}
+        <div className="flex flex-col gap-5 lg:col-span-4 order-2">
+          {/* UPLOADER */}
+          <section className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
             <div className="flex items-center gap-2 mb-4">
-              <ImageIcon className="w-4 h-4 text-orange-500" />
-              <h3 className="font-bold text-sm tracking-wide text-slate-700">UPLOAD FOTO</h3>
+               <ImageIcon className="w-4 h-4 text-orange-500" />
+               <h3 className="font-extrabold text-[13px] text-slate-800">UPLOADS ({photos.length}/{transparentBoxes.length})</h3>
             </div>
             <PhotoUploader 
               onPhotoAdd={addPhoto} 
               boxCount={transparentBoxes.length} 
               uploadedPhotos={photos.length} 
             />
-          </Card>
+          </section>
 
-          <Card className="bg-white/80 border-none shadow-xl shadow-orange-100/50 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-orange-50 bg-orange-50/30 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-pink-500" />
-              <h3 className="font-bold text-sm text-slate-700">MANAJEMEN LAYER</h3>
+          {/* LAYER MANAGEMENT */}
+          <section className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-4">
+               <Layers className="w-4 h-4 text-pink-500" />
+               <h3 className="font-extrabold text-[13px] text-slate-800">LAYERS</h3>
             </div>
-            <ScrollArea className="h-[350px]">
+
+            <ScrollArea className="h-[250px] md:h-[350px] bg-slate-50 rounded-[1.2rem] p-2 border border-slate-100">
               {photos.length > 0 ? (
-                <div className="p-4 space-y-3">
+                <div className="space-y-2">
                   {photos.map((photo, idx) => (
-                    <div key={photo.id} className="group flex items-center gap-4 p-3 rounded-xl bg-white border border-transparent hover:border-orange-200 hover:shadow-md transition-all">
-                      <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-slate-100 border shrink-0">
-                        <img src={photo.src} alt="" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent" />
+                    <div key={photo.id} className="flex items-center gap-3 p-2 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-orange-200 transition-colors">
+                      <img src={photo.src} alt="Uploaded" className="w-12 h-12 rounded-lg object-cover bg-slate-100" />
+                      <div className="flex-1">
+                        <p className="text-[9px] font-black uppercase text-orange-500">Slot {idx + 1}</p>
+                        <p className="text-xs font-bold text-slate-700 truncate">Foto {idx + 1}</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-orange-400 uppercase">Slot {idx + 1}</p>
-                        <p className="text-sm font-semibold text-slate-700 truncate">Foto {idx + 1}</p>
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-orange-500" onClick={() => movePhoto(idx, idx - 1)} disabled={idx === 0}>
-                                <MoveUp className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Pindah ke Atas</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-slate-400 hover:text-red-500" 
-                          onClick={() => removePhoto(photo.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div className="flex gap-1.5 shrink-0 pr-1">
+                        <button onClick={() => movePhoto(idx, idx - 1)} disabled={idx === 0} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-orange-500 active:scale-90 disabled:opacity-30 transition-colors">
+                          <MoveUp size={14} strokeWidth={2.5} />
+                        </button>
+                        <button onClick={() => removePhoto(photo.id)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-red-500 active:scale-90 transition-colors">
+                          <Trash2 size={14} strokeWidth={2.5} />
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-[250px] text-slate-400 p-8 text-center">
-                  <ImageIcon className="w-12 h-12 mb-3 opacity-20" />
-                  <p className="text-sm italic">Belum ada foto yang diupload.</p>
-                </div>
+                  <div className="flex flex-col items-center justify-center h-full opacity-40">
+                    <ImageIcon size={28} className="mb-2" />
+                    <span className="text-xs font-bold">Belum ada foto</span>
+                  </div>
               )}
             </ScrollArea>
-          </Card>
-        </aside>
+          </section>
+        </div>
 
-        {/* Area Utama: Canvas Editor */}
-        <section className="lg:col-span-8 order-1 lg:order-2">
-          {isProcessing ? (
-            <Card className="h-[600px] flex flex-col items-center justify-center bg-white/50 border-none rounded-[2.5rem]">
-              <Loader2 className="w-10 h-10 text-orange-500 animate-spin mb-4" />
-              <p className="text-orange-600 font-medium">Menganalisa area frame...</p>
-            </Card>
-          ) : (
-            <div className="relative group">
-              {/* Efek Glow di Belakang Canvas */}
-              <div className="absolute -inset-4 bg-orange-400/10 rounded-[3rem] blur-2xl transition-all group-hover:bg-orange-400/20" />
-              
-              <Card className="relative p-4 md:p-8 bg-white/90 border-none shadow-2xl rounded-[2.5rem] backdrop-blur-sm overflow-hidden">
-                <div className="bg-slate-50/50 rounded-[2rem] p-4 flex items-center justify-center min-h-[650px] shadow-inner border border-white">
-                  <CanvasComposer
-                    canvasRef={canvasRef}
-                    frameImage={frameImage}
-                    photos={photos}
-                    transparentBoxes={transparentBoxes}
-                    photoAdjustments={photoAdjustments}
-                    stickers={stickers}
-                    setStickers={setStickers}
-                  />
-                </div>
-                
-                {/* Petunjuk Penggunaan */}
-                <div className="mt-6 flex flex-wrap justify-center gap-6 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                  <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-orange-400" /> Geser untuk atur posisi</span>
-                  <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-pink-400" /> Cubit untuk zoom foto</span>
-                </div>
-              </Card>
-            </div>
-          )}
-        </section>
       </main>
     </div>
   )

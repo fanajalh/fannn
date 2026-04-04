@@ -1,10 +1,14 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Plus_Jakarta_Sans } from "next/font/google"
 import { Providers } from "@/components/Providers"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const jakarta = Plus_Jakarta_Sans({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap"
+})
 
 export const metadata: Metadata = {
   title: "JokiPoster - Jasa Desain Poster Profesional",
@@ -14,15 +18,15 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/feed arfan (20).png", sizes: "any" },
-      { url: "/feed arfan (20).png", sizes: "16x16", type: "image/png" },
-      { url: "/feed arfan (20).png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     other: [{ rel: "mask-icon", url: "/safari-pinned-tab.png", color: "#f97316" }],
   },
   manifest: "/site.webmanifest",
   themeColor: "#f97316",
-  viewport: "width=device-width, initial-scale=1",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
   robots: "index, follow",
   authors: [{ name: "JokiPoster Team" }],
   creator: "JokiPoster",
@@ -68,11 +72,13 @@ export default function RootLayout({
         <meta name="theme-color" content="#f97316" />
         <meta name="msapplication-TileColor" content="#f97316" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
+        {/* Tambahan import langsung jika ingin fallback font */}
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${inter.className} bg-gray-100 flex justify-center text-slate-900`}>
+      <body className={`${jakarta.className} bg-slate-50 text-slate-900`}>
         <Providers>
-          {/* MOBILE FIRST CONTAINER */}
-          <div className="w-full max-w-[480px] min-h-screen bg-white shadow-2xl relative overflow-x-hidden flex flex-col mx-auto">
+          {/* MAIN APP CONTAINER */}
+          <div className="w-full min-h-screen bg-white relative overflow-x-hidden flex flex-col mx-auto">
             {children}
           </div>
         </Providers>

@@ -92,16 +92,21 @@ export async function POST(request: NextRequest) {
     }
 }
 
-export async function GET(request: NextRequest) {
-    try {
-        const sql = getDb();
-        const session = await getServerSession(authOptions)
-        if (!session || (session.user as any).role !== "admin") {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
-        }
-
-        const orders = await sql`SELECT * FROM orders ORDER BY created_at DESC`;
-        return NextResponse.json({ success: true, orders })
+    export async function GET(request: NextRequest) {
+        try {
+            const sql = getDb();
+            const session = await getServerSession(authOptions)
+            if (!session) {
+                return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+            }
+    
+            if ((session.user as any).role === "admin") {
+                const orders = await sql`SELECT * FROM orders ORDER BY created_at DESC`;
+                return NextResponse.json({ success: true, orders })
+            } else {
+                const orders = await sql`SELECT * FROM orders WHERE email = ${session.user?.email} ORDER BY created_at DESC`;
+                return NextResponse.json({ success: true, orders })
+            }
     } catch (error) {
         console.error("Orders GET error:", error)
         return NextResponse.json({ success: false, message: "Terjadi kesalahan server" }, { status: 500 })

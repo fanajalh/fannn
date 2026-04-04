@@ -4,16 +4,21 @@
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-gray-200 font-sans font-semibold;
   }
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-white text-gray-900 overflow-x-hidden font-sans font-semibold;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none; /* Prevents pull-to-refresh native bounce on desktop, feels more app-like */
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-normal !important;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 select-none;
   }
 
   .btn-primary {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Transition } from "@headlessui/react";
 import { Send, User, Mail, Tag, FileText, CheckCircle, X, Sparkles, Loader2, MessageSquare } from "lucide-react";
+import Swal from "sweetalert2";
 
 const categories = [
   { value: "Desain UI/UX", icon: "🎨" },
@@ -28,7 +29,7 @@ export default function SuggestionForm() {
     setError(null);
 
     if (!category.trim()) {
-      alert("Category wajib diisi!");
+      Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Category wajib diisi!' });
       return;
     }
 
@@ -44,7 +45,7 @@ export default function SuggestionForm() {
       const result = await res.json();
 
       if (!res.ok) {
-        alert(result.error || "Gagal mengirim saran.");
+        Swal.fire({ icon: 'error', title: 'Gagal', text: result.error || "Gagal mengirim saran." });
         return;
       }
 
@@ -59,7 +60,7 @@ export default function SuggestionForm() {
       }, 3000);
 
     } catch (error) {
-      alert("Terjadi kesalahan saat mengirim saran. Silakan coba lagi.");
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan saat mengirim saran. Silakan coba lagi.' });
       console.error("Submission error:", error);
     } finally {
       setLoading(false);

@@ -4,6 +4,7 @@ import { useState } from "react"
 import ChatWindow from "@/components/chat/ChatWindow"
 import ConsentBanner from "@/components/chat/ConsentBanner"
 import { acceptChatRequest } from "@/lib/actions/chat"
+import Swal from "sweetalert2"
 
 export default function PrivateChatPage({ params }: { params: { chatId: string } }) {
   // Idealnya ini dicek dulu ke database apakah statusnya sudah 'accepted' atau 'pending'
@@ -12,7 +13,7 @@ export default function PrivateChatPage({ params }: { params: { chatId: string }
   const handleAccept = async () => {
     const res = await acceptChatRequest(params.chatId)
     if (res.success) setIsAccepted(true)
-    else alert("Gagal menyetujui chat: " + res.error)
+    else Swal.fire({ icon: 'error', title: 'Gagal', text: "Gagal menyetujui chat: " + res.error })
   }
 
   return (

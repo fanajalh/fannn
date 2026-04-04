@@ -80,6 +80,52 @@ export async function GET() {
       )
     `;
 
+    // Tabel Kabar Terbaru / Promo Banners
+    await sql`
+      CREATE TABLE IF NOT EXISTS news (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(500) NOT NULL,
+        description TEXT,
+        badge VARCHAR(100) DEFAULT '⚡ Info',
+        color_from VARCHAR(50) DEFAULT 'teal-500',
+        color_to VARCHAR(50) DEFAULT 'emerald-700',
+        link TEXT,
+        is_active BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+
+    // Tabel Karya Unggulan (Featured Works)
+    await sql`
+      CREATE TABLE IF NOT EXISTS featured_works (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(500) NOT NULL,
+        client_name VARCHAR(255),
+        badge VARCHAR(100) DEFAULT 'Top',
+        duration_text VARCHAR(100) DEFAULT 'Selesai dalam 2 hari',
+        is_active BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+
+    // Tabel Client Updates (Area Pesanan info yg tampil di user homepage)
+    await sql`
+      CREATE TABLE IF NOT EXISTS client_updates (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+        client_email VARCHAR(255) NOT NULL,
+        title VARCHAR(500) NOT NULL,
+        status_text VARCHAR(255) DEFAULT 'Sedang Dikerjakan...',
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+
     // Create admin account
     const adminEmail = "fanajalh@joki.com";
     const existing = await sql`SELECT id FROM users WHERE email = ${adminEmail}`;
@@ -98,7 +144,7 @@ export async function GET() {
       success: true,
       message: "Database setup complete!",
       admin: adminMsg,
-      tables: ["users", "orders", "suggestions", "suggestion_replies", "messages"],
+      tables: ["users", "orders", "suggestions", "suggestion_replies", "messages", "news", "featured_works", "client_updates"],
     });
   } catch (e: any) {
     console.error("Setup DB error:", e);
