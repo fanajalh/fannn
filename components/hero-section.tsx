@@ -1,11 +1,6 @@
 import { Lightbulb, Sparkles, MessageCircle, Heart, ArrowRight, User } from "lucide-react"
-// Import Supabase jika nanti kamu butuh fetch data jumlah saran di server
-import { getSupabaseServerClient } from "@/lib/supabase/server"
 
 export default async function HeroSection() {
-  // Contoh jika kamu ingin fetch total saran:
-  // const supabase = await getSupabaseServerClient();
-  // const { count } = await supabase.from('suggestions').select('*', { count: 'exact', head: true });
 
   return (
     <section id="beranda" className="relative overflow-hidden py-20 lg:py-32 bg-[#FAFAFA] selection:bg-orange-100 selection:text-orange-900">

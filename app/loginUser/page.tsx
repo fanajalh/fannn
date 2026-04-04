@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase/client"
 import { 
   Palette, 
   Mail, 
@@ -39,37 +38,45 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         // ==========================================
-        // PROSES LOGIN
+        // PROSES LOGIN DENGAN NEXTAUTH
         // ==========================================
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { signIn } = await import("next-auth/react");
+        const res = await signIn("credentials", {
           email: formData.email,
           password: formData.password,
-        })
+          redirect: false,
+        });
         
-        if (signInError) throw signInError
+        if (res?.error) throw new Error(res.error);
         
-        // Jika login berhasil, langsung arahkan ke Global Chat
-        router.push("/chat/global")
+        // Redirect ke dashboard (middleware akan cek role)
+        window.location.href = "/dashboard";
         
       } else {
         // ==========================================
-        // PROSES REGISTER (Auto-Login)
+        // PROSES REGISTER
         // ==========================================
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            name: formData.username,
+          }),
+        });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Gagal register");
+        
+        // Auto Login setelah register sukses
+        const { signIn } = await import("next-auth/react");
+        await signIn("credentials", {
           email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              username: formData.username, // Data ini ditangkap oleh Trigger Database
-            },
-          },
-        })
-        
-        if (signUpError) throw signUpError
-        
-        // Karena "Confirm Email" dimatikan di Supabase Dashboard,
-        // user akan langsung mendapatkan session aktif di sini.
-        // Kita bisa langsung arahkan (redirect) ke chat!
+          password: formData.password, // This requires the plaintext password again
+          redirect: false,
+        });
+
         router.push("/chat/global")
       }
     } catch (err: any) {

@@ -86,7 +86,6 @@ export default function Dashboard() {
 
   // --- EFFECTS ---
   useEffect(() => {
-    checkAuth();
     fetchOrders();
     fetchAnalytics();
     fetchSuggestions();
@@ -94,25 +93,12 @@ export default function Dashboard() {
   }, []);
 
   // --- API FUNCTIONS ---
-  const checkAuth = async () => {
-    try {
-      const response = await fetch("/api/auth/verify");
-      if (!response.ok) { router.push("/login"); return; }
-      const data = await response.json();
-      if (!data.success || data.user.role !== "admin") router.push("/login");
-    } catch (error) { router.push("/login"); }
-  };
-
   const handleLogout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
     try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      if (response.ok) {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "/login";
-      }
+      const { signOut } = await import("next-auth/react");
+      await signOut({ callbackUrl: "/login" });
     } catch (error) { window.location.href = "/login"; } 
     finally { setLoggingOut(false); }
   };
@@ -797,7 +783,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-center p-5 bg-gray-50 rounded-2xl">
                   <div>
                     <p className="font-black text-gray-900">Database Status</p>
-                    <p className="text-sm font-medium text-gray-500">{connectionStatus === "connected" ? "Connected to Supabase" : (connectionStatus === "mock" ? "Demo Mode (Mock Data)" : "Connection Error")}</p>
+                    <p className="text-sm font-medium text-gray-500">{connectionStatus === "connected" ? "Connected to MongoDB" : (connectionStatus === "mock" ? "Demo Mode (Mock Data)" : "Connection Error")}</p>
                   </div>
                   {connectionStatus === "connected" ? <Wifi className="text-green-500"/> : <WifiOff className="text-amber-500"/>}
                 </div>

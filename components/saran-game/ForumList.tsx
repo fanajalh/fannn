@@ -1,7 +1,8 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Flame, MessageCircle, UserCircle2, ArrowRight, Loader2, TrendingUp, Clock, Zap } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+import { useSession } from "next-auth/react"
+import useSWR from "swr"
 
 // Helper untuk format waktu
 function timeAgo(dateString: string) {
@@ -17,79 +18,60 @@ function timeAgo(dateString: string) {
   return "Baru saja"
 }
 
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+
 export default function ForumList() {
   const [activeCategory, setActiveCategory] = useState("Semua")
-  const [sortBy, setSortBy] = useState<"terpopuler" | "terbaru">("terpopuler") // State untuk Sorting
-  const [suggestions, setSuggestions] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [replyText, setReplyText] = useState<{ [key: number]: string }>({})
+  const [sortBy, setSortBy] = useState<"terpopuler" | "terbaru">("terpopuler")
+  const [replyText, setReplyText] = useState<{ [key: string]: string }>({})
 
-  // Ambil data dari database
-  const fetchSuggestions = async () => {
-    const { data, error } = await supabase
-      .from("game_suggestions")
-      .select(`
-        *,
-        replies:game_suggestion_replies(*)
-      `)
-      // Kita fetch semua dulu, nanti di-sort di frontend agar mulus saat ganti tab
-      .order("created_at", { ascending: false })
-
-    if (!error && data) {
-      setSuggestions(data)
-    }
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    fetchSuggestions()
-  }, [])
+  const { data: session } = useSession()
+  const { data: apiData, mutate, isLoading } = useSWR("/api/game-suggestions", fetcher)
+  
+  const suggestions = apiData?.data || []
 
   // Fungsi untuk mengirim balasan/komentar
-  const handleReply = async (suggestionId: number) => {
+  const handleReply = async (suggestionId: string) => {
     const content = replyText[suggestionId]
     if (!content || !content.trim()) return
 
-    const { data: userData } = await supabase.auth.getUser()
-    const authorName = userData?.user?.user_metadata?.username || "Player Anonim"
+    const authorName = session?.user?.name || "Player Anonim"
 
-    const { error } = await supabase.from("game_suggestion_replies").insert({
-      suggestion_id: suggestionId,
-      author: authorName,
-      content: content
+    const res = await fetch(`/api/game-suggestions/${suggestionId}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ author: authorName, content })
     })
 
-    if (!error) {
-      fetchSuggestions()
+    if (res.ok) {
+      mutate()
       setReplyText({ ...replyText, [suggestionId]: "" })
     }
   }
 
   // Fungsi untuk Upvote (Ditambah animasi visual ringan nantinya)
-  const handleUpvote = async (suggestionId: number, currentUpvotes: number) => {
-    // Optimistic UI Update (Biar angka nambah duluan sebelum ke database biar kerasa instan)
-    setSuggestions(prev => prev.map(s => s.id === suggestionId ? { ...s, upvotes: s.upvotes + 1 } : s))
-
-    await supabase
-      .from("game_suggestions")
-      .update({ upvotes: currentUpvotes + 1 })
-      .eq("id", suggestionId)
+  const handleUpvote = async (suggestionId: string) => {
+    // Optimistic UI Update ditangani oleh mutate bawaan atau manual jika diinginkan
+    // Kita panggil manual di sini agar mudah.
     
-    // Validasi data asli dari server
-    fetchSuggestions()
+    await fetch(`/api/game-suggestions/${suggestionId}/upvote`, {
+        method: "PATCH"
+    })
+    
+    mutate()
   }
 
   // 1. Filter kategori
   const filteredSuggestions = activeCategory === "Semua" 
     ? suggestions 
-    : suggestions.filter(s => s.category.includes(activeCategory))
+    : suggestions.filter((s: any) => s.category.includes(activeCategory))
 
   // 2. Sorting Data (Terpopuler vs Terbaru)
   const sortedSuggestions = [...filteredSuggestions].sort((a, b) => {
     if (sortBy === "terpopuler") {
-      return b.upvotes - a.upvotes; // Vote terbanyak di atas
+      return b.upvotes - a.upvotes;
     } else {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // Waktu terbaru di atas
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   })
 
@@ -135,20 +117,18 @@ export default function ForumList() {
       </div>
 
       {/* RENDER KONTEN */}
-      {loading ? (
+      {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 animate-in fade-in">
           <Loader2 className="animate-spin text-orange-500 w-10 h-10 mb-4" />
           <p className="text-xs font-black uppercase tracking-widest text-gray-400">Memuat Data Server...</p>
         </div>
       ) : sortedSuggestions.length === 0 ? (
         
-        // EMPTY STATE SVG LUCU
         <div className="bg-white p-12 flex flex-col items-center justify-center text-center rounded-[2rem] border border-gray-100 shadow-sm animate-in zoom-in-95 duration-500">
           <div className="w-40 h-40 mb-6 text-gray-200">
             <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
               <path d="M40 80L100 40L160 80V150C160 155.523 155.523 160 150 160H50C44.4772 160 40 155.523 40 150V80Z" fill="currentColor" opacity="0.5"/>
               <path d="M100 40L40 80L100 120L160 80L100 40Z" fill="#F3F4F6"/>
-              {/* Zzz animation */}
               <g className="animate-[bounce_2s_infinite]">
                 <text x="80" y="30" fontSize="24" fill="#9CA3AF" fontWeight="bold">Z</text>
                 <text x="100" y="15" fontSize="16" fill="#9CA3AF" fontWeight="bold">z</text>
@@ -162,13 +142,11 @@ export default function ForumList() {
 
       ) : (
         sortedSuggestions.map((suggestion, index) => {
-          // Logika untuk menampilkan badge HOT (Vote > 5 atau juara 1 di tab terpopuler)
           const isHot = suggestion.upvotes >= 5 || (sortBy === "terpopuler" && index === 0 && suggestion.upvotes > 0);
 
           return (
             <div key={suggestion.id} className="relative bg-white rounded-[2rem] border border-gray-100 p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-orange-900/5 transition-all duration-300">
               
-              {/* BADGE HOT IDEA (Melayang di sudut) */}
               {isHot && (
                 <div className="absolute -top-3 -right-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-lg flex items-center gap-1 animate-bounce" style={{animationDuration: '3s'}}>
                   <Zap size={12} className="fill-white" /> Hot Idea
@@ -196,7 +174,7 @@ export default function ForumList() {
 
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-50">
                 <button 
-                  onClick={() => handleUpvote(suggestion.id, suggestion.upvotes)}
+                  onClick={() => handleUpvote(suggestion.id)}
                   className="flex items-center gap-2 px-5 py-2.5 bg-orange-50 hover:bg-orange-500 hover:text-white text-orange-600 rounded-2xl font-black text-xs transition-all group shadow-sm active:scale-95"
                 >
                   <Flame size={16} className="group-hover:fill-white transition-colors" /> 

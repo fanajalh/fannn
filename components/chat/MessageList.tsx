@@ -1,81 +1,19 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { supabase } from "@/lib/supabase/client"
+import { useEffect, useRef } from "react"
+import useSWR from "swr"
 import { Loader2 } from "lucide-react"
 
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+
 export default function MessageList({ channelId, currentUserId }: { channelId: string, currentUserId: string }) {
-  const [messages, setMessages] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    let isMounted = true;
-
-    // 1. Fetch Sejarah Pesan Lama
-    const fetchMessages = async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select(`*, profiles(username)`)
-        .eq("channel_id", channelId)
-        .order("created_at", { ascending: true })
-      
-      if (data && isMounted) {
-        setMessages(data)
-        setLoading(false)
-      }
-    }
-    
-    fetchMessages()
-
-    // 2. Engine Realtime Super Cepat
-    const channel = supabase.channel(`chat-${channelId}`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'messages', 
-        filter: `channel_id=eq.${channelId}` 
-      }, 
-      async (payload) => {
-        // --- LOGIKA INSTAN ---
-        // Cek apakah ini pesan kita sendiri
-        const isMe = payload.new.sender_id === currentUserId;
-
-        // TAMPILKAN PESAN SEKARANG JUGA (Jangan nunggu database!)
-        const instantMessage = {
-          ...payload.new,
-          profiles: { username: isMe ? "Anda" : "Memuat..." } // Kasih nama sementara
-        };
-
-        setMessages((prev) => [...prev, instantMessage]);
-
-        // Kalau pesan dari orang lain, cari nama aslinya di background secara diam-diam
-        if (!isMe) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("username")
-            .eq("id", payload.new.sender_id)
-            .single();
-
-          if (profile) {
-            // Update pesannya dengan nama asli tanpa mengganggu layar
-            setMessages((prev) => 
-              prev.map((msg) => 
-                msg.id === payload.new.id 
-                  ? { ...msg, profiles: { username: profile.username } } 
-                  : msg
-              )
-            );
-          }
-        }
-      })
-      .subscribe()
-
-    return () => { 
-      isMounted = false;
-      supabase.removeChannel(channel) 
-    }
-  }, [channelId, currentUserId])
+  
+  // Polling every 2 seconds
+  const { data: messages, error, isLoading } = useSWR(`/api/messages?channelId=${channelId}`, fetcher, {
+    refreshInterval: 2000,
+    revalidateOnFocus: true
+  })
 
   // Auto-scroll ke bawah setiap ada pesan baru dengan smooth
   useEffect(() => { 
@@ -87,7 +25,7 @@ export default function MessageList({ channelId, currentUserId }: { channelId: s
     }
   }, [messages])
 
-  if (loading) {
+  if (isLoading || !messages) {
     return (
       <div className="flex-1 flex items-center justify-center bg-[#FAFAFA]">
         <div className="flex flex-col items-center gap-2 text-orange-500">
@@ -98,6 +36,10 @@ export default function MessageList({ channelId, currentUserId }: { channelId: s
     )
   }
 
+  if (error) {
+     return <div className="text-red-500 font-bold p-4">Error memuat pesan.</div>
+  }
+
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#FAFAFA] custom-scrollbar">
       {messages.length === 0 && (
@@ -106,7 +48,7 @@ export default function MessageList({ channelId, currentUserId }: { channelId: s
         </div>
       )}
 
-      {messages.map((msg) => {
+      {messages.map((msg: any) => {
         const isMe = msg.sender_id === currentUserId;
         
         return (
@@ -117,7 +59,7 @@ export default function MessageList({ channelId, currentUserId }: { channelId: s
                 {isMe ? "Anda" : msg.profiles?.username || "Anonim"}
               </span>
               <span className="text-[9px] font-bold text-gray-300">
-                {new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                {msg.created_at ? new Date(msg.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : ""}
               </span>
             </div>
 

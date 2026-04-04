@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import { Providers } from "@/components/Providers"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -68,7 +69,14 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#f97316" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} bg-gray-100 flex justify-center text-slate-900`}>
+        <Providers>
+          {/* MOBILE FIRST CONTAINER */}
+          <div className="w-full max-w-[480px] min-h-screen bg-white shadow-2xl relative overflow-x-hidden flex flex-col mx-auto">
+            {children}
+          </div>
+        </Providers>
+      </body>
     </html>
   )
 }

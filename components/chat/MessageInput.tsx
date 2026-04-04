@@ -1,53 +1,50 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Send, LogIn } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { mutate } from "swr" // Import mutate untuk merefresh swr secara manual jika perlu
 
 export default function MessageInput({ channelId }: { channelId: string }) {
   const [content, setContent] = useState("")
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    // 1. Cek status login langsung dari memori browser (Client)
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
-      setLoading(false)
-    }
-    
-    checkUser()
-
-    // 2. Pasang Listener: Kalau user tiba-tiba login/logout, UI otomatis berubah
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null)
-    })
-
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
-  }, [])
+  
+  const { data: session, status } = useSession()
+  const user = session?.user
 
   const handleSend = async () => {
     if (!content.trim() || !user) return
-    const { error } = await supabase.from("messages").insert({
-      content, 
-      channel_id: channelId, 
-      sender_id: user.id
-    })
     
-    if (!error) {
-      setContent("")
-    } else {
-      console.error("Gagal kirim pesan:", error.message)
+    setLoading(true)
+    
+    try {
+      const res = await fetch("/api/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              content,
+              channel_id: channelId
+          })
+      })
+
+      if (res.ok) {
+          setContent("")
+          // Opsional: Triger mutate SWR agar UI langsung refresh tanpa tunggu 2 detik
+          mutate(`/api/messages?channelId=${channelId}`)
+      } else {
+          console.error("Gagal kirim pesan")
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
   }
 
   // Tampilan saat sedang mengecek status (Loading)
-  if (loading) {
+  if (status === "loading") {
     return (
       <div className="p-6 bg-white border-t flex justify-center">
         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">
@@ -62,7 +59,7 @@ export default function MessageInput({ channelId }: { channelId: string }) {
     return (
       <div className="p-6 bg-white border-t flex justify-center">
         <button 
-          onClick={() => router.push("/login")} 
+          onClick={() => router.push("/loginUser")} 
           className="flex items-center gap-2 px-8 py-3 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-lg shadow-gray-200"
         >
           <LogIn size={18} /> Login untuk Chat
@@ -79,13 +76,14 @@ export default function MessageInput({ channelId }: { channelId: string }) {
           type="text" 
           value={content} 
           placeholder="Tulis pesan..." 
-          className="flex-1 bg-transparent p-2 outline-none text-sm font-medium"
+          className="flex-1 bg-transparent p-2 outline-none text-sm font-medium disabled:opacity-50"
           onChange={(e) => setContent(e.target.value)} 
           onKeyDown={(e) => e.key === "Enter" && handleSend()} 
+          disabled={loading}
         />
         <button 
           onClick={handleSend} 
-          disabled={!content.trim()}
+          disabled={!content.trim() || loading}
           className="w-12 h-12 bg-orange-500 text-white rounded-xl flex items-center justify-center transition-all hover:bg-orange-600 disabled:opacity-50 disabled:grayscale active:scale-95 shadow-lg shadow-orange-500/20"
         >
           <Send size={18} />

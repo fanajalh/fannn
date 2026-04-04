@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { Coffee, Send, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+import { useSession } from "next-auth/react"
 
 export default function FormSaran() {
   const [loading, setLoading] = useState(false)
@@ -11,6 +11,8 @@ export default function FormSaran() {
     content: ""
   })
 
+  const { data: session } = useSession()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.content.trim()) return
@@ -19,16 +21,22 @@ export default function FormSaran() {
     setStatus({ type: null, message: '' })
 
     try {
-      const { data: userData } = await supabase.auth.getUser()
-      const authorName = userData?.user?.user_metadata?.username || "Player Anonim"
+      const authorName = session?.user?.name || "Player Anonim"
+      const authorEmail = session?.user?.email || ""
 
-      const { error } = await supabase.from("game_suggestions").insert({
-        author: authorName,
-        category: formData.category,
-        content: formData.content,
+      const res = await fetch("/api/suggestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              name: authorName,
+              email: authorEmail,
+              category: formData.category,
+              message: formData.content,
+              type: "game"
+          })
       })
 
-      if (error) throw error
+      if (!res.ok) throw new Error("Gagal mengirim ide")
       
       setStatus({ type: 'success', message: 'Ide brilianmu berhasil dikirim ke Basecamp!' })
       setFormData({ ...formData, content: "" }) 

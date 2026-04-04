@@ -1,15 +1,15 @@
-import { getSupabaseServerClient } from "@/lib/supabase/server"
 import ChatWindow from "@/components/chat/ChatWindow"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
 export default async function ChannelPage({ params }: { params: { channel: string } }) {
-  const supabase = getSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const session = await getServerSession(authOptions)
 
   return (
     <ChatWindow
       title={params.channel}
       channelId={params.channel}
-      currentUserId={user?.id || ""} // Kirim string kosong jika tamu
+      currentUserId={(session?.user as any)?.id || ""} // Kirim string kosong jika tamu
     />
   )
 }

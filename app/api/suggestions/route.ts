@@ -1,75 +1,43 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getDb } from "@/lib/db";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-// =========================
-// POST — USER KIRIM SARAN
-// =========================
 export async function POST(req: Request) {
   try {
-    const { name, email, category, message } = await req.json();
+    const sql = getDb();
+    const { name, email, category, message, type } = await req.json();
 
-    if (!category) {
-      return NextResponse.json(
-        { error: "Category wajib diisi" },
-        { status: 400 }
-      );
+    if (!category || !message) {
+      return NextResponse.json({ error: "Category dan Saran wajib diisi" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .from("suggestions")
-      .insert([
-        {
-          nama: name || null,
-          user_email: email || null,
-          category,
-          saran: message,
-          status: "pending",
-        },
-      ])
-      .select()
-      .single();
+    const result = await sql`
+      INSERT INTO suggestions (nama, user_email, category, saran, status, type, author)
+      VALUES (${name || null}, ${email || null}, ${category}, ${message}, 'pending', ${type || 'general'}, ${name || null})
+      RETURNING *
+    `;
 
-    if (error) {
-      console.error("Insert error:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: result[0] });
   } catch (e: any) {
     console.error("SERVER ERROR:", e);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-// =========================
-// GET — ADMIN AMBIL SEMUA SARAN
-// =========================
 export async function GET() {
   try {
-    const { data, error } = await supabase
-      .from("suggestions")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const sql = getDb();
+    const session = await getServerSession(authOptions);
 
-    if (error) {
-      console.error("GET /suggestions error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!session || (session.user as any).role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const data = await sql`SELECT * FROM suggestions WHERE type = 'general' ORDER BY created_at DESC`;
     return NextResponse.json({ data });
   } catch (e) {
     console.error("SERVER GET ERROR:", e);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -23,62 +23,22 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
 
-    console.log("Submitting login:", { email: formData.email, useMockLogin })
-
     try {
-      const endpoint = useMockLogin ? "/api/mock-login" : "/api/auth/login"
+      const { signIn } = await import("next-auth/react");
+      const res = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-
-      console.log("Response status:", response.status)
-      console.log("Response headers:", response.headers)
-
-      // Check if response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (res?.error) {
+        throw new Error(res.error);
       }
 
-      // Check content type
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text()
-        console.error("Non-JSON response:", text)
-        throw new Error("Server returned non-JSON response")
-      }
-
-      const data = await response.json()
-      console.log("Login response:", data)
-
-      if (data.success) {
-        console.log("Login successful, redirecting to dashboard")
-        // Use window.location for more reliable redirect
-        window.location.href = "/dashboard"
-      } else {
-        setError(data.message || "Login gagal")
-        // Show debug info if available
-        if (data.debug) {
-          console.log("Debug info:", data.debug)
-        }
-      }
-    } catch (error) {
+      window.location.href = "/dashboard";
+    } catch (error: any) {
       console.error("Login error:", error)
-      if (error instanceof Error) {
-        if (error.message.includes("JSON")) {
-          setError("Server error: Invalid response format")
-        } else if (error.message.includes("HTTP error")) {
-          setError("Server error: Connection failed")
-        } else {
-          setError(error.message)
-        }
-      } else {
-        setError("Terjadi kesalahan yang tidak diketahui")
-      }
+      setError(error.message || "Gagal login, periksa email dan password Anda")
     } finally {
       setLoading(false)
     }
