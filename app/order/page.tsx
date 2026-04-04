@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { ArrowLeft, ChevronRight, FileText, Check, Loader2, Sparkles, ShieldCheck } from "lucide-react"
 import Link from "next/link"
@@ -21,7 +21,7 @@ import {
   type OrderData,
 } from "@/components/order"
 
-export default function OrderPage() {
+function OrderPageContent() {
   const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
 
@@ -266,5 +266,13 @@ export default function OrderPage() {
       </div>
 
     </div>
+  )
+}
+
+export default function OrderPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f4f6f9] flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-orange-500" /></div>}>
+      <OrderPageContent />
+    </Suspense>
   )
 }

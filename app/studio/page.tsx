@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, Suspense } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { 
   ArrowLeft, 
@@ -52,7 +52,7 @@ const FRAMES: Record<string, string> = {
   "u-frame": "/images/u.png",
 }
 
-export default function StudioPage() {
+function StudioPageContent() {
   const searchParams = useSearchParams()
   const frameId = searchParams.get("frameId") || "good-vibes"
   const frameImage = FRAMES[frameId] || FRAMES["good-vibes"]
@@ -268,5 +268,13 @@ export default function StudioPage() {
 
       </main>
     </div>
+  )
+}
+
+export default function StudioPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f4f6f9] flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-orange-500" /></div>}>
+      <StudioPageContent />
+    </Suspense>
   )
 }
