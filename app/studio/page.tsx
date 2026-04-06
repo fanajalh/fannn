@@ -10,10 +10,13 @@ import {
   Sparkles, 
   Layers, 
   Loader2,
-  Camera
+  Camera,
+  Settings2,
+  X // Tambahan Icon
 } from "lucide-react"
 import PhotoUploader from "@/components/photo-uploader"
 import CanvasComposer from "@/components/canvas-composer"
+import PhotoEditor from "@/components/photo-editor" // IMPORT COMPONENT EDITOR
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -45,17 +48,35 @@ interface PhotoAdjustment {
   offsetX: number
   offsetY: number
   scale: number
+  filter?: string // Filter support
 }
 
-const FRAMES: Record<string, string> = {
-  "good-vibes": "/images/orange-colorful-playful-retro-90-s-good-vibes-photobooth-collage-photostrip-1-removebg-preview.png",
-  "u-frame": "/images/u.png",
-}
+const FALLBACK_FRAMES: Record<string, string> = {}
 
 function StudioPageContent() {
   const searchParams = useSearchParams()
   const frameId = searchParams.get("frameId") || "good-vibes"
-  const frameImage = FRAMES[frameId] || FRAMES["good-vibes"]
+  const [frameMap, setFrameMap] = useState<Record<string, string>>(FALLBACK_FRAMES)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/frames")
+      .then((r) => r.json())
+      .then((json) => {
+        if (cancelled || !json.success || !Array.isArray(json.data)) return
+        const next = { ...FALLBACK_FRAMES }
+        for (const row of json.data) {
+          if (row.slug && row.image_url) next[row.slug] = row.image_url
+        }
+        setFrameMap(next)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const frameImage = frameMap[frameId] || frameMap["good-vibes"]
   
   // --- States ---
   const [stickers, setStickers] = useState<Sticker[]>([])
@@ -64,6 +85,9 @@ function StudioPageContent() {
   const [isProcessing, setIsProcessing] = useState(true)
   const [photoAdjustments, setPhotoAdjustments] = useState<Record<string, PhotoAdjustment>>({})
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // NEW: State untuk Editor Popup
+  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null)
 
   // --- Logika Deteksi Area Transparan ---
   useEffect(() => {
@@ -149,6 +173,17 @@ function StudioPageContent() {
     setPhotos(newPhotos.map((p, i) => ({ ...p, boxIndex: i })))
   }
 
+  // NEW: Handler untuk Editor
+  const handleAdjustmentSave = (adjustment: PhotoAdjustment) => {
+    if (editingPhotoId) {
+      setPhotoAdjustments(prev => ({
+        ...prev,
+        [editingPhotoId]: adjustment
+      }))
+      setEditingPhotoId(null) // Tutup editor setelah simpan
+    }
+  }
+
   const downloadComposite = async () => {
     if (!canvasRef.current) return
     const link = document.createElement("a")
@@ -157,11 +192,14 @@ function StudioPageContent() {
     link.click()
   }
 
+  // Foto yang sedang diedit (jika ada)
+  const photoToEdit = photos.find(p => p.id === editingPhotoId)
+
   return (
     <div className="bg-[#f4f6f9] min-h-screen pb-28 font-sans select-none w-full relative overflow-x-hidden">
       
       {/* HEADER */}
-      <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-5 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-5 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/frames" className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 flex-shrink-0 text-slate-500 hover:bg-slate-200 transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -183,7 +221,7 @@ function StudioPageContent() {
         </button>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+      <main className="max-w-6xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start relative z-10">
         
         {/* CANVAS AREA */}
         <section className="relative z-10 w-full lg:col-span-8 order-1">
@@ -206,8 +244,8 @@ function StudioPageContent() {
                 />
               </div>
               <div className="mt-4 flex flex-wrap justify-center gap-4 md:gap-6 text-[9px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest pb-1">
-                 <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-orange-400" /> Geser Foto</span>
-                 <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-pink-400" /> Cubit Zoom</span>
+                 <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-orange-400" /> Layer Stiker</span>
+                 <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-pink-400" /> Filter Canggih</span>
               </div>
             </div>
           )}
@@ -232,24 +270,42 @@ function StudioPageContent() {
           <section className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100">
             <div className="flex items-center gap-2 mb-4">
                <Layers className="w-4 h-4 text-pink-500" />
-               <h3 className="font-extrabold text-[13px] text-slate-800">LAYERS</h3>
+               <h3 className="font-extrabold text-[13px] text-slate-800">LAYERS FOTO</h3>
             </div>
 
             <ScrollArea className="h-[250px] md:h-[350px] bg-slate-50 rounded-[1.2rem] p-2 border border-slate-100">
               {photos.length > 0 ? (
                 <div className="space-y-2">
                   {photos.map((photo, idx) => (
-                    <div key={photo.id} className="flex items-center gap-3 p-2 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-orange-200 transition-colors">
+                    <div key={photo.id} className="flex items-center gap-2.5 p-2 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-orange-200 transition-colors">
                       <img src={photo.src} alt="Uploaded" className="w-12 h-12 rounded-lg object-cover bg-slate-100" />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="text-[9px] font-black uppercase text-orange-500">Slot {idx + 1}</p>
                         <p className="text-xs font-bold text-slate-700 truncate">Foto {idx + 1}</p>
                       </div>
-                      <div className="flex gap-1.5 shrink-0 pr-1">
-                        <button onClick={() => movePhoto(idx, idx - 1)} disabled={idx === 0} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-orange-500 active:scale-90 disabled:opacity-30 transition-colors">
+                      
+                      {/* ACTION BUTTONS (Added Edit Button) */}
+                      <div className="flex gap-1 shrink-0">
+                        <button 
+                          onClick={() => setEditingPhotoId(photo.id)} 
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-100 hover:text-orange-600 active:scale-90 transition-colors"
+                          title="Edit & Filter"
+                        >
+                          <Settings2 size={14} strokeWidth={2.5} />
+                        </button>
+                        <button 
+                          onClick={() => movePhoto(idx, idx - 1)} 
+                          disabled={idx === 0} 
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:text-orange-500 active:scale-90 disabled:opacity-30 transition-colors"
+                          title="Pindah ke atas"
+                        >
                           <MoveUp size={14} strokeWidth={2.5} />
                         </button>
-                        <button onClick={() => removePhoto(photo.id)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-red-500 active:scale-90 transition-colors">
+                        <button 
+                          onClick={() => removePhoto(photo.id)} 
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 active:scale-90 transition-colors"
+                          title="Hapus Foto"
+                        >
                           <Trash2 size={14} strokeWidth={2.5} />
                         </button>
                       </div>
@@ -267,6 +323,31 @@ function StudioPageContent() {
         </div>
 
       </main>
+
+      {/* ================= MODAL EDITOR FOTO ================= */}
+      {editingPhotoId && photoToEdit && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-[400px] animate-in zoom-in-95 duration-300 relative">
+            
+            {/* Tombol Tutup Modal Cepat */}
+            <button 
+              onClick={() => setEditingPhotoId(null)}
+              className="absolute -top-12 right-0 w-10 h-10 bg-white/20 hover:bg-red-500 text-white rounded-full flex items-center justify-center transition-colors backdrop-blur-md"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
+
+            {/* Panggil Komponen PhotoEditor */}
+            <PhotoEditor 
+              photoId={photoToEdit.id}
+              photoSrc={photoToEdit.src}
+              onAdjustment={handleAdjustmentSave}
+            />
+
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

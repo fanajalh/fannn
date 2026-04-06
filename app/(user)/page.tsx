@@ -176,7 +176,7 @@ export default function UserHome() {
           </Link>
 
           {/* Small Buttons */}
-          <Link href="/commingsoon" className="col-span-1 row-span-1 bg-white rounded-[1.5rem] p-3 shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 active:scale-95 transition-all hover:border-emerald-200 hover:shadow-md">
+          <Link href="/frames" className="col-span-1 row-span-1 bg-white rounded-[1.5rem] p-3 shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 active:scale-95 transition-all hover:border-emerald-200 hover:shadow-md">
             <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center">
               <Camera size={20} strokeWidth={2.5} />
             </div>

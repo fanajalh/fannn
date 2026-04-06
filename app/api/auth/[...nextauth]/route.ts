@@ -10,24 +10,37 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        otp: { label: "OTP", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
-          throw new Error("Email dan Password wajib diisi");
+          throw new Error("Email dan password wajib diisi");
+        }
+        if (!credentials.otp || !String(credentials.otp).trim()) {
+          throw new Error("Kode OTP wajib diisi");
         }
 
+        const email = String(credentials.email).trim().toLowerCase();
+        const otp = String(credentials.otp).trim();
+
         const sql = getDb();
-        const users = await sql`SELECT * FROM users WHERE email = ${credentials.email}`;
+        const users = await sql`SELECT * FROM users WHERE email = ${email}`;
 
         if (users.length === 0) {
-          throw new Error("User tidak ditemukan");
+          throw new Error("Email atau password tidak valid");
         }
 
         const user = users[0];
         const isPasswordMatch = await bcrypt.compare(credentials.password, user.password);
 
         if (!isPasswordMatch) {
-          throw new Error("Password salah");
+          throw new Error("Email atau password tidak valid");
+        }
+
+        const { verifyAndConsumeOtp } = await import("@/lib/otp");
+        const otpOk = await verifyAndConsumeOtp(email, otp, "login");
+        if (!otpOk) {
+          throw new Error("Kode OTP salah atau kedaluwarsa");
         }
 
         return {

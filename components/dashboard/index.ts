@@ -14,3 +14,6 @@ export { TabContent } from "./TabContent"
 
 // Modals
 export { OrderDetailModal, EditOrderModal, SuggestionModal } from "./Modals"
+
+export { default as TabPremium } from "./Premium-stock"
+export { default as TabPhotoboothFrames } from "./TabPhotoboothFrames"

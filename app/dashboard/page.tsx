@@ -4,13 +4,13 @@ import { useState, useEffect } from "react"
 import {
   Palette, RefreshCw, LogOut, WifiOff, AlertCircle,
   BarChart3, FileText, MessageSquare, TrendingUp,
-  Globe, CreditCard, Settings, Newspaper, X, LayoutGrid
+  Globe, CreditCard, Settings, Newspaper, X, LayoutGrid, Crown, Images,
 } from "lucide-react"
 import Swal from "sweetalert2"
 
 import {
   TabOverview, TabOrders, TabSuggestions, TabAnalytics,
-  TabWebsite, TabPricing, TabSettings, TabContent,
+  TabWebsite, TabPricing, TabSettings, TabContent, TabPremium, TabPhotoboothFrames,
   OrderDetailModal, EditOrderModal, SuggestionModal,
   GRADIENT_ORANGE, DEFAULT_SETTINGS,
   type Order, type Analytics, type WebsiteSettings, type Suggestion,
@@ -18,13 +18,16 @@ import {
 
 const TAB_ICONS: Record<string, any> = {
   overview: BarChart3, orders: FileText, content: Newspaper, suggestions: MessageSquare,
-  analytics: TrendingUp, website: Globe, pricing: CreditCard, settings: Settings,
+  analytics: TrendingUp, website: Globe, pricing: CreditCard, settings: Settings, premium: Crown,
+  frames: Images,
 }
 
 const TABS = [
   { id: "overview", label: "Overview", color: "blue" },
   { id: "orders", label: "Orders", color: "orange" },
   { id: "content", label: "Konten", color: "rose" },
+  { id: "frames", label: "Frame", color: "pink" },
+  { id: "premium", label: "Premium", color: "yellow" },
   { id: "suggestions", label: "Saran", color: "amber" },
   { id: "analytics", label: "Analytics", color: "emerald" },
   { id: "website", label: "Website", color: "indigo" },
@@ -289,6 +292,8 @@ export default function Dashboard() {
           {activeTab === "website" && <TabWebsite settings={websiteSettings} setSettings={setWebsiteSettings} editing={editingSettings} setEditing={setEditingSettings} onSave={saveWebsiteSettings} />}
           {activeTab === "pricing" && <TabPricing settings={websiteSettings} setSettings={setWebsiteSettings} editing={editingSettings} setEditing={setEditingSettings} onSave={saveWebsiteSettings} />}
           {activeTab === "content" && <TabContent />}
+          {activeTab === "frames" && <TabPhotoboothFrames />}
+          {activeTab === "premium" && <TabPremium />}
           {activeTab === "settings" && <TabSettings connectionStatus={connectionStatus} />}
         </div>
       </main>

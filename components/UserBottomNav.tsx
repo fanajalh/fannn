@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Compass, ShoppingBag, User, Briefcase } from "lucide-react"
+import { Home, Compass, ShoppingBag, User, Briefcase, Crown } from "lucide-react"
 import { useCart } from "@/components/cart"
 
 export function UserBottomNav() {
@@ -30,12 +30,12 @@ export function UserBottomNav() {
           <span className={`text-[10px] mt-1 font-bold ${pathname === '/layanan' ? 'text-orange-600' : 'text-slate-500'}`}>Layanan</span>
         </Link>
 
-        {/* Kiri 2: Portfolio */}
-        <Link href="/portfolio" className="flex flex-col items-center justify-center w-full py-1 group active:scale-95 transition-transform">
-          <div className={`p-1.5 rounded-[1.2rem] transition-all duration-300 ${pathname === '/portfolio' ? 'bg-orange-50 text-orange-600' : 'text-slate-400 group-hover:text-slate-700'}`}>
-            <Briefcase size={24} strokeWidth={pathname === '/portfolio' ? 2.5 : 2} />
+        {/* Kanan 1: Premium */}
+        <Link href="/commingsoon" className="flex flex-col items-center justify-center w-full py-1 group active:scale-95 transition-transform">
+          <div className={`p-1.5 rounded-[1.2rem] transition-all duration-300 ${pathname === '/premium' ? 'bg-orange-50 text-orange-600' : 'text-slate-400 group-hover:text-slate-700'}`}>
+            <Crown size={24} strokeWidth={pathname === '/premium' ? 2.5 : 2} />
           </div>
-          <span className={`text-[10px] mt-1 font-bold ${pathname === '/portfolio' ? 'text-orange-600' : 'text-slate-500'}`}>Karya</span>
+          <span className={`text-[10px] mt-1 font-bold ${pathname === '/premium' ? 'text-orange-600' : 'text-slate-500'}`}>Premium</span>
         </Link>
 
         {/* TENGAH: Floating Home Button */}

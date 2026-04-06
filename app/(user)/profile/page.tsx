@@ -13,7 +13,7 @@ export default function ProfilePage() {
 
   const menuItems = [
     { icon: Palette, label: "Pesanan Saya", desc: "Lihat riwayat pesanan", href: "/profile/orders", color: "orange" },
-    { icon: MessageCircle, label: "Obrolan", desc: "WhatsApp Admin", href: "https://wa.me/62857281502223", color: "emerald", external: true },
+    { icon: MessageCircle, label: "Obrolan", desc: "WhatsApp Admin", href: "https://wa.me/6285728150223", color: "emerald", external: true },
     { icon: Clock, label: "Riwayat Aktivitas", desc: "Log aktivitas akun", href: "/profile/activity", color: "blue" },
     { icon: Settings, label: "Pengaturan", desc: "Akun & preferensi", href: "/profile/settings", color: "slate" },
   ]
@@ -108,7 +108,7 @@ export default function ProfilePage() {
       </div>
 
       {/* App Version */}
-      <p className="text-center text-[10px] text-slate-300 font-bold mt-6">Fanajah Design Studio v1.0</p>
+      <p className="text-center text-[10px] text-slate-300 font-bold mt-6">Fanajah Design Studio v1.1</p>
       </div>
     </div>
   )
