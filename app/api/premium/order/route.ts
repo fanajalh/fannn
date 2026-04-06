@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     // Cek produk ada dan aktif
     const product = await sql`
-      SELECT id, name, price FROM premium_products WHERE id = ${slug} AND is_active = true
+      SELECT id, name, price FROM premium_products WHERE id = ${slug} AND is_active IS NOT FALSE
     `
     if (product.length === 0) {
       return NextResponse.json({ success: false, message: "Produk tidak ditemukan" }, { status: 404 })

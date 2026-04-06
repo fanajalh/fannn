@@ -25,7 +25,7 @@ export async function GET(
         WHERE status = 'AVAILABLE'
         GROUP BY product_id
       ) s ON s.product_id = p.id
-      WHERE p.id = ${slug} AND p.is_active = true
+      WHERE p.id = ${slug} AND p.is_active IS NOT FALSE
     `
 
     if (product.length === 0) {

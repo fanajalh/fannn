@@ -13,7 +13,7 @@ export async function GET() {
     const categories = await sql`
       SELECT id, name, icon, active_color AS "activeColor"
       FROM premium_categories
-      WHERE is_active = true
+      WHERE is_active IS NOT FALSE
       ORDER BY sort_order ASC
     `
 
@@ -29,7 +29,7 @@ export async function GET() {
         WHERE status = 'AVAILABLE'
         GROUP BY product_id
       ) s ON s.product_id = p.id
-      WHERE p.is_active = true
+      WHERE p.is_active IS NOT FALSE
       ORDER BY p.popular DESC, p.name ASC
     `
 
