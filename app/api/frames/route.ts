@@ -7,7 +7,7 @@ export async function GET() {
     const rows = await sql`
       SELECT slug, name, description, image_url, slots, sort_order
       FROM photobooth_frames
-      WHERE is_active = true
+      WHERE is_active IS NOT FALSE
       ORDER BY sort_order ASC, id ASC
     `;
     return NextResponse.json({ success: true, data: rows });
@@ -16,3 +16,4 @@ export async function GET() {
     return NextResponse.json({ success: false, message: e.message }, { status: 500 });
   }
 }
+

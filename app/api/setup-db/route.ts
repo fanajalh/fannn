@@ -274,18 +274,31 @@ export async function GET(request: Request) {
 
     // Frame photobooth: dikelola sepenuhnya via admin dashboard, tanpa seed otomatis.
 
-    // Create admin account
-    const adminEmail = "fanajalh@joki.com";
-    const existing = await sql`SELECT id FROM users WHERE email = ${adminEmail}`;
+    // Create / update admin account
+    const oldAdminEmail = "fanajalh@joki.com";
+    const adminEmail = "muhammadfachriarfan7@gmail.com";
+    const adminPassword = "faNajalh_459";
 
-    let adminMsg = "Admin already exists";
+    // Hapus admin lama jika masih ada
+    await sql`DELETE FROM users WHERE email = ${oldAdminEmail}`;
+
+    const existing = await sql`SELECT id FROM users WHERE email = ${adminEmail}`;
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+    let adminMsg = "";
     if (existing.length === 0) {
-      const hashedPassword = await bcrypt.hash("faNajalh_459", 10);
       await sql`
         INSERT INTO users (name, email, password, role)
         VALUES ('Super Admin Fanajah', ${adminEmail}, ${hashedPassword}, 'admin')
       `;
-      adminMsg = "Admin created successfully";
+      adminMsg = "Admin created with new email";
+    } else {
+      // Update password & pastikan role admin
+      await sql`
+        UPDATE users SET password = ${hashedPassword}, role = 'admin', updated_at = NOW()
+        WHERE email = ${adminEmail}
+      `;
+      adminMsg = "Admin updated with new password";
     }
 
     return NextResponse.json({
