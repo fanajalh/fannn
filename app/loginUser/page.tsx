@@ -431,11 +431,19 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 text-center">
+                <div className="mt-6 flex flex-col gap-4 text-center">
+                  <Link
+                    href="/frames"
+                    className="w-full flex items-center justify-center py-3.5 bg-orange-50 text-orange-600 border border-orange-100 border-dashed hover:border-orange-300 rounded-2xl font-bold text-sm hover:bg-orange-100 transition-all active:scale-[0.98] group"
+                  >
+                    <span>Lanjut sebagai Tamu (Ke Studio)</span>
+                    <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+
                   <button
                     type="button"
                     onClick={toggleAuthMode}
-                    className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+                    className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors mt-2"
                   >
                     {isLogin ? (
                       <p>

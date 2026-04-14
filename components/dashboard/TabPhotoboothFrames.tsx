@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Trash2, RefreshCw, Loader2, ImageIcon, Pencil, X } from "lucide-react"
+import { Plus, Trash2, RefreshCw, Loader2, ImageIcon, Pencil, X, Upload, User, ToggleLeft, ToggleRight } from "lucide-react"
 import Swal from "sweetalert2"
 
 type FrameRow = {
@@ -13,6 +13,8 @@ type FrameRow = {
   slots: number
   sort_order: number
   is_active: boolean
+  uploaded_by: number | null
+  uploader_name: string | null
 }
 
 const emptyForm = {
@@ -32,6 +34,7 @@ export default function TabPhotoboothFrames() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<FrameRow | null>(null)
   const [form, setForm] = useState(emptyForm)
+  const [filter, setFilter] = useState<"all" | "admin" | "user">("all")
 
   const fetchRows = async () => {
     try {
@@ -122,6 +125,37 @@ export default function TabPhotoboothFrames() {
     }
   }
 
+  const toggleActive = async (r: FrameRow) => {
+    try {
+      const res = await fetch(`/api/admin/photobooth-frames/${r.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: !r.is_active }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.message || "Gagal")
+      fetchRows()
+      Swal.fire({
+        icon: "success",
+        title: r.is_active ? "Frame dinonaktifkan" : "Frame diaktifkan",
+        timer: 1000,
+        showConfirmButton: false,
+      })
+    } catch (e: any) {
+      Swal.fire({ icon: "error", text: e.message || "Gagal" })
+    }
+  }
+
+  // Filter rows
+  const filteredRows = rows.filter((r) => {
+    if (filter === "admin") return !r.uploaded_by
+    if (filter === "user") return !!r.uploaded_by
+    return true
+  })
+
+  const userUploadCount = rows.filter((r) => r.uploaded_by).length
+  const adminUploadCount = rows.filter((r) => !r.uploaded_by).length
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24">
@@ -133,11 +167,39 @@ export default function TabPhotoboothFrames() {
 
   return (
     <div className="space-y-6">
+      {/* Stats Bar */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center">
+          <p className="text-3xl font-black text-slate-900">{rows.length}</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Total Frame</p>
+        </div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center">
+          <p className="text-3xl font-black text-orange-500">{adminUploadCount}</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Admin Upload</p>
+        </div>
+        <div className="bg-white border border-blue-100 rounded-2xl p-4 text-center">
+          <p className="text-3xl font-black text-blue-500">{userUploadCount}</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">User Upload</p>
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-600 max-w-xl">
-          Tempel URL gambar dari CDN (https). Slug dipakai di URL studio, mis.{" "}
-          <code className="text-xs bg-slate-100 px-1 rounded">/studio?frameId=good-vibes</code>
-        </p>
+        <div className="flex gap-2">
+          {(["all", "admin", "user"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                filter === f
+                  ? "bg-orange-50 border-orange-300 text-orange-700"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              {f === "all" ? `Semua (${rows.length})` : f === "admin" ? `Admin (${adminUploadCount})` : `User (${userUploadCount})`}
+            </button>
+          ))}
+        </div>
         <div className="flex gap-2">
           <button
             type="button"
@@ -157,10 +219,12 @@ export default function TabPhotoboothFrames() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {rows.map((r) => (
+        {filteredRows.map((r) => (
           <div
             key={r.id}
-            className="bg-white border border-slate-200 rounded-2xl p-4 flex gap-4 shadow-sm"
+            className={`bg-white border rounded-2xl p-4 flex gap-4 shadow-sm transition-all ${
+              !r.is_active ? "border-amber-200 bg-amber-50/30 opacity-75" : r.uploaded_by ? "border-blue-200" : "border-slate-200"
+            }`}
           >
             <div className="w-24 h-32 shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -172,17 +236,46 @@ export default function TabPhotoboothFrames() {
                   <p className="font-black text-slate-900 truncate">{r.name}</p>
                   <p className="text-[11px] font-mono text-slate-500">{r.slug}</p>
                 </div>
-                {!r.is_active && (
-                  <span className="text-[10px] font-bold uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-                    off
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {r.uploaded_by ? (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">
+                      <User size={10} /> User
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-orange-600 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-100">
+                      Admin
+                    </span>
+                  )}
+                  {!r.is_active && (
+                    <span className="text-[9px] font-bold uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+                      OFF
+                    </span>
+                  )}
+                </div>
               </div>
               <p className="text-xs text-slate-600 line-clamp-2 mt-1">{r.description || "—"}</p>
-              <p className="text-[10px] text-slate-400 mt-2">
+              <p className="text-[10px] text-slate-400 mt-1">
                 {r.slots} slot · urut {r.sort_order}
+                {r.uploader_name && (
+                  <span className="ml-2 text-blue-500">· oleh {r.uploader_name}</span>
+                )}
               </p>
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2 mt-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => toggleActive(r)}
+                  className={`text-xs font-bold inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-colors ${
+                    r.is_active
+                      ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
+                      : "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                  }`}
+                >
+                  {r.is_active ? (
+                    <><ToggleRight size={14} /> Nonaktifkan</>
+                  ) : (
+                    <><ToggleLeft size={14} /> Aktifkan</>
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={() => openEdit(r)}
@@ -203,8 +296,14 @@ export default function TabPhotoboothFrames() {
         ))}
       </div>
 
-      {rows.length === 0 && (
-        <p className="text-center text-slate-400 text-sm py-8">Belum ada frame. Tambah dari tombol di atas.</p>
+      {filteredRows.length === 0 && (
+        <p className="text-center text-slate-400 text-sm py-8">
+          {filter === "user"
+            ? "Belum ada frame dari user."
+            : filter === "admin"
+            ? "Belum ada frame dari admin."
+            : "Belum ada frame. Tambah dari tombol di atas."}
+        </p>
       )}
 
       {showForm && (

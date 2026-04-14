@@ -234,6 +234,8 @@ export async function GET(request: Request) {
         slots INTEGER NOT NULL DEFAULT 4,
         sort_order INTEGER NOT NULL DEFAULT 0,
         is_active BOOLEAN NOT NULL DEFAULT true,
+        uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        uploader_name VARCHAR(255),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )

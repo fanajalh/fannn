@@ -5,7 +5,24 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Plus, ArrowUp, ArrowDown, Trash2, Maximize2, Move, RefreshCw } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Plus, ArrowUp, ArrowDown, Trash2, Maximize2, Move, RefreshCw, Upload, Sparkles } from "lucide-react"
+
+const createEmojiSticker = (emoji: string): string => {
+  const canvas = document.createElement("canvas")
+  canvas.width = 160
+  canvas.height = 160
+  const ctx = canvas.getContext("2d")
+  if (ctx) {
+    ctx.font = "120px sans-serif"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    ctx.fillText(emoji, 80, 80)
+  }
+  return canvas.toDataURL("image/png")
+}
+
+const DEFAULT_EMOJIS = ["✨", "❤️", "🔥", "😎", "😂", "🎉", "💯", "🎂"]
 
 interface Photo { id: string; src: string; boxIndex: number }
 interface TransparentBox { x: number; y: number; width: number; height: number; index: number }
@@ -29,7 +46,7 @@ interface Props {
 type Action = "drag" | "resize" | "rotate" | null
 
 export default function CanvasComposer({
-  canvasRef, frameImage, photos = [], transparentBoxes = [], photoAdjustments = {}, stickers = [], setStickers = () => {},
+  canvasRef, frameImage, photos = [], transparentBoxes = [], photoAdjustments = {}, stickers = [], setStickers = () => { },
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [action, setAction] = useState<Action>(null)
@@ -51,9 +68,9 @@ export default function CanvasComposer({
     photos.forEach(photo => {
       const img = new Image()
       img.crossOrigin = "anonymous"
-      img.onload = () => { 
+      img.onload = () => {
         loaded[photo.id] = img
-        if (Object.keys(loaded).length === photos.length) setPhotoImages({...loaded}) 
+        if (Object.keys(loaded).length === photos.length) setPhotoImages({ ...loaded })
       }
       img.src = photo.src
     })
@@ -63,7 +80,7 @@ export default function CanvasComposer({
     const canvas = canvasRef.current
     if (!canvas || !frameImg) return
     const ctx = canvas.getContext("2d")!
-    
+
     canvas.width = frameImg.width
     canvas.height = frameImg.height
     ctx.imageSmoothingEnabled = true
@@ -73,16 +90,16 @@ export default function CanvasComposer({
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
+
       // A. GAMBAR FOTO USER
       photos.forEach(photo => {
         const box = transparentBoxes[photo.boxIndex]
         const img = photoImages[photo.id]
         if (!box || !img) return
-        
+
         // Default values jika belum ada editan
         const adj = photoAdjustments[photo.id] || { offsetX: 0, offsetY: 0, scale: 1, filter: "none" }
-        
+
         ctx.save()
         ctx.beginPath()
         ctx.rect(box.x, box.y, box.width, box.height)
@@ -100,7 +117,7 @@ export default function CanvasComposer({
 
         // 3. Lukis gambar ke canvas
         ctx.drawImage(img, drawX, drawY, finalWidth, finalHeight)
-        
+
         // 4. Reset filter agar elemen lain (seperti frame/stiker) tidak ikut kena filter!
         ctx.filter = "none"
         ctx.restore()
@@ -108,7 +125,7 @@ export default function CanvasComposer({
 
       // B. GAMBAR FRAME (Di atas foto)
       ctx.drawImage(frameImg, 0, 0)
-      
+
       // C. GAMBAR STIKER
       stickers.forEach(s => {
         const img = new Image()
@@ -117,35 +134,61 @@ export default function CanvasComposer({
         ctx.translate(s.x + s.size / 2, s.y + s.size / 2)
         ctx.rotate((s.rotation * Math.PI) / 180)
         ctx.drawImage(img, -s.size / 2, -s.size / 2, s.size, s.size)
-        
+
         if (s.id === activeId) {
-          ctx.strokeStyle = "#f97316"
-          ctx.setLineDash([5, 5])
+          ctx.strokeStyle = "#0ea5e9"
+          ctx.setLineDash([6, 4])
           ctx.lineWidth = 2
-          ctx.strokeRect(-s.size / 2 - 4, -s.size / 2 - 4, s.size + 8, s.size + 8)
+          ctx.strokeRect(-s.size / 2 - 2, -s.size / 2 - 2, s.size + 4, s.size + 4)
           ctx.setLineDash([])
-          ctx.fillStyle = "#ffffff"
-          ctx.strokeStyle = "#f97316"
-          ctx.fillRect(s.size / 2 - 2, s.size / 2 - 2, 12, 12)
-          ctx.strokeRect(s.size / 2 - 2, s.size / 2 - 2, 12, 12)
+          ctx.lineWidth = 2
+
+          // Delete Handle (Top Right)
           ctx.beginPath()
-          ctx.arc(s.size / 2 + 4, -s.size / 2 - 4, 10, 0, Math.PI * 2)
+          ctx.arc(s.size / 2 + 2, -s.size / 2 - 2, 20, 0, Math.PI * 2)
           ctx.fillStyle = "#ef4444"
           ctx.fill()
           ctx.strokeStyle = "#ffffff"
           ctx.stroke()
           ctx.beginPath()
-          ctx.arc(0, s.size / 2 + 25, 10, 0, Math.PI * 2)
+          ctx.moveTo(s.size / 2 - 6, -s.size / 2 - 10)
+          ctx.lineTo(s.size / 2 + 10, -s.size / 2 + 6)
+          ctx.moveTo(s.size / 2 + 10, -s.size / 2 - 10)
+          ctx.lineTo(s.size / 2 - 6, -s.size / 2 + 6)
+          ctx.strokeStyle = "#ffffff"
+          ctx.lineWidth = 3
+          ctx.stroke()
+          ctx.lineWidth = 2
+
+          // Resize Handle (Bottom Right)
+          ctx.beginPath()
+          ctx.arc(s.size / 2 + 2, s.size / 2 + 2, 20, 0, Math.PI * 2)
+          ctx.fillStyle = "#0ea5e9"
+          ctx.fill()
+          ctx.strokeStyle = "#ffffff"
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(s.size / 2 + 2, s.size / 2 + 2, 6, 0, Math.PI * 2)
           ctx.fillStyle = "#ffffff"
           ctx.fill()
-          ctx.strokeStyle = "#f97316"
+
+          // Rotate Handle (Bottom Center)
+          ctx.beginPath()
+          ctx.arc(0, s.size / 2 + 32, 20, 0, Math.PI * 2)
+          ctx.fillStyle = "#10b981"
+          ctx.fill()
+          ctx.strokeStyle = "#ffffff"
           ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(0, s.size / 2 + 32, 6, 0, Math.PI * 2)
+          ctx.fillStyle = "#ffffff"
+          ctx.fill()
         }
         ctx.restore()
       })
       animationFrameId = requestAnimationFrame(draw)
     }
-    
+
     draw()
     return () => cancelAnimationFrame(animationFrameId)
   }, [stickers, activeId, frameImg, photos, transparentBoxes, photoAdjustments, photoImages, canvasRef])
@@ -158,9 +201,9 @@ export default function CanvasComposer({
       const angle = (s.rotation * Math.PI) / 180
       const rx = dx * Math.cos(-angle) - dy * Math.sin(-angle)
       const ry = dx * Math.sin(-angle) + dy * Math.cos(-angle)
-      if (Math.hypot(rx - (s.size / 2 + 4), ry - (-s.size / 2 - 4)) <= 15) return { id: s.id, type: "delete" }
-      if (Math.hypot(rx - 0, ry - (s.size / 2 + 25)) <= 15) return { id: s.id, type: "rotate" }
-      if (Math.hypot(rx - (s.size / 2 + 4), ry - (s.size / 2 + 4)) <= 15) return { id: s.id, type: "resize" }
+      if (Math.hypot(rx - (s.size / 2 + 2), ry - (-s.size / 2 - 2)) <= 25) return { id: s.id, type: "delete" }
+      if (Math.hypot(rx - 0, ry - (s.size / 2 + 32)) <= 25) return { id: s.id, type: "rotate" }
+      if (Math.hypot(rx - (s.size / 2 + 2), ry - (s.size / 2 + 2)) <= 25) return { id: s.id, type: "resize" }
       if (rx >= -s.size / 2 && rx <= s.size / 2 && ry >= -s.size / 2 && ry <= s.size / 2) return { id: s.id, type: "drag" }
     }
     return null
@@ -175,7 +218,7 @@ export default function CanvasComposer({
     setActiveId(hit?.id || null)
     if (!hit) return
     if (hit.type === "delete") { setStickers(prev => prev.filter(s => s.id !== hit.id)); setActiveId(null); return }
-    setStartSticker({...stickers.find(st => st.id === hit.id)!}); setStartPos({x, y}); setAction(hit.type as Action)
+    setStartSticker({ ...stickers.find(st => st.id === hit.id)! }); setStartPos({ x, y }); setAction(hit.type as Action)
   }
 
   const onMove = (clientX: number, clientY: number) => {
@@ -205,17 +248,43 @@ export default function CanvasComposer({
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto space-y-6">
       <Card className="p-2 bg-white border-none shadow-2xl rounded-[2.2rem] overflow-hidden">
-        <canvas 
-          ref={canvasRef} className="max-w-full h-auto cursor-crosshair touch-none rounded-xl" 
-          onMouseDown={e => onStart(e.clientX, e.clientY)} onMouseMove={e => onMove(e.clientX, e.clientY)} onMouseUp={() => setAction(null)} 
-          onTouchStart={e => onStart(e.touches[0].clientX, e.touches[0].clientY)} onTouchMove={e => onMove(e.touches[0].clientX, e.touches[0].clientY)} onTouchEnd={() => setAction(null)} 
+        <canvas
+          ref={canvasRef} className="max-w-full h-auto cursor-crosshair touch-none rounded-xl"
+          onMouseDown={e => onStart(e.clientX, e.clientY)} onMouseMove={e => onMove(e.clientX, e.clientY)} onMouseUp={() => setAction(null)}
+          onTouchStart={e => onStart(e.touches[0].clientX, e.touches[0].clientY)} onTouchMove={e => onMove(e.touches[0].clientX, e.touches[0].clientY)} onTouchEnd={() => setAction(null)}
         />
       </Card>
-      
-      <Card className="w-full max-w-md p-3 bg-white/90 backdrop-blur-xl border-none shadow-lg rounded-full flex items-center justify-between px-6 border border-orange-50">
-        <Button onClick={() => fileInputRef.current?.click()} className="bg-orange-500 hover:bg-orange-600 text-white rounded-full h-11 px-6 font-bold shadow-lg shadow-orange-200 transition-all">
-          <Plus className="w-4 h-4 mr-2" /> Stiker
-        </Button>
+
+      <Card className="w-full max-w-md p-3 bg-white/90 backdrop-blur-xl border-none shadow-lg rounded-full flex items-center justify-between px-6 border border-orange-50 relative z-30">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white rounded-full h-11 px-6 font-bold shadow-lg shadow-orange-200 transition-all active:scale-95">
+              <Plus className="w-4 h-4 mr-2" /> Stiker
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[280px] p-4 rounded-[2rem] shadow-2xl shadow-orange-100 border-none bg-white/95 backdrop-blur-xl z-50 transform origin-bottom" sideOffset={20}>
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-orange-400" /> Stiker Lucu</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {DEFAULT_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => setStickers(prev => [...prev, { id: crypto.randomUUID(), src: createEmojiSticker(emoji), x: 40, y: 40, size: 250, rotation: 0 }])}
+                      className="w-12 h-12 flex items-center justify-center text-3xl hover:bg-orange-100 rounded-2xl transition-all active:scale-90 hover:scale-110"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Separator className="bg-slate-100" />
+              <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="w-full rounded-2xl border-dashed border-2 border-slate-200 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 text-slate-600 font-bold h-12 active:scale-95 transition-all">
+                <Upload className="w-4 h-4 mr-2" /> Atau Upload Gambar
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
         <Separator orientation="vertical" className="h-6 bg-orange-100" />
         <TooltipProvider>
           <div className="flex bg-orange-50 p-1.5 rounded-2xl border border-orange-100 gap-1">
@@ -224,13 +293,13 @@ export default function CanvasComposer({
           </div>
         </TooltipProvider>
       </Card>
-      
+
       <div className="flex gap-6 text-[10px] font-bold text-orange-400 uppercase tracking-widest opacity-60">
         <span className="flex items-center gap-2"><Move className="w-3 h-3" /> Geser</span>
         <span className="flex items-center gap-2"><RefreshCw className="w-3 h-3" /> Putar</span>
         <span className="flex items-center gap-2"><Maximize2 className="w-3 h-3" /> Ukuran</span>
       </div>
-      <input ref={fileInputRef} type="file" accept="image/png" hidden onChange={e => { if (e.target.files?.[0]) { const r = new FileReader(); r.onload = () => setStickers(prev => [...prev, { id: crypto.randomUUID(), src: r.result as string, x: 50, y: 50, size: 120, rotation: 0 }]); r.readAsDataURL(e.target.files[0]) }}} />
+      <input ref={fileInputRef} type="file" accept="image/png" hidden onChange={e => { if (e.target.files?.[0]) { const r = new FileReader(); r.onload = () => setStickers(prev => [...prev, { id: crypto.randomUUID(), src: r.result as string, x: 50, y: 50, size: 250, rotation: 0 }]); r.readAsDataURL(e.target.files[0]) } }} />
     </div>
   )
 }

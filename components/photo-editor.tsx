@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { 
-  Move, 
-  Maximize, 
-  RotateCcw, 
-  Check, 
+import {
+  Move,
+  Maximize,
+  RotateCcw,
+  Check,
   Settings2,
   Wand2
 } from "lucide-react"
@@ -65,9 +65,9 @@ export default function PhotoEditor({ photoId, photoSrc, onAdjustment }: PhotoEd
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Filter, Geser & Perbesar</p>
           </div>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={handleReset}
           className="w-10 h-10 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-full active:scale-90 transition-all"
         >
@@ -76,7 +76,7 @@ export default function PhotoEditor({ photoId, photoSrc, onAdjustment }: PhotoEd
       </div>
 
       <div className="p-6 md:p-8 space-y-8">
-        
+
         {/* PREVIEW AREA */}
         <div className="relative group mx-auto max-w-[280px] md:max-w-[320px]">
           <div className="absolute -inset-4 bg-gradient-to-r from-orange-400 to-rose-400 rounded-[3rem] blur-xl opacity-15 pointer-events-none" />
@@ -84,7 +84,7 @@ export default function PhotoEditor({ photoId, photoSrc, onAdjustment }: PhotoEd
             <img
               src={photoSrc}
               alt="Editing preview"
-              className="w-full h-full object-cover" 
+              className="w-full h-full object-cover"
               style={{
                 transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
                 filter: activeFilter,

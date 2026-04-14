@@ -12,7 +12,7 @@ export async function GET() {
     }
     const sql = getDb();
     const rows = await sql`
-      SELECT id, slug, name, description, image_url, slots, sort_order, is_active, created_at, updated_at
+      SELECT id, slug, name, description, image_url, slots, sort_order, is_active, created_at, updated_at, uploaded_by, uploader_name
       FROM photobooth_frames
       ORDER BY sort_order ASC, id ASC
     `;
